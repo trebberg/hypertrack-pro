@@ -9,7 +9,7 @@ import 'tables/user_tables.dart';
 import 'tables/gym_tables.dart';
 import 'tables/exercise_tables.dart';
 import 'tables/workout_tables.dart';
-import 'tables/timer_tables.dart';
+import 'tables/timers_tables.dart';
 
 // Generated file
 part 'database.g.dart';
