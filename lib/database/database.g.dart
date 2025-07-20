@@ -5468,6 +5468,983 @@ class SetValuesCompanion extends UpdateCompanion<SetValue> {
   }
 }
 
+class $ExerciseRecordFormulasTable extends ExerciseRecordFormulas
+    with TableInfo<$ExerciseRecordFormulasTable, ExerciseRecordFormula> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ExerciseRecordFormulasTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _exerciseIdMeta = const VerificationMeta(
+    'exerciseId',
+  );
+  @override
+  late final GeneratedColumn<int> exerciseId = GeneratedColumn<int>(
+    'exercise_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES exercises (id)',
+    ),
+  );
+  static const VerificationMeta _formulaTypeMeta = const VerificationMeta(
+    'formulaType',
+  );
+  @override
+  late final GeneratedColumn<String> formulaType = GeneratedColumn<String>(
+    'formula_type',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(
+      minTextLength: 1,
+      maxTextLength: 50,
+    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _primaryValueTypeIdMeta =
+      const VerificationMeta('primaryValueTypeId');
+  @override
+  late final GeneratedColumn<int> primaryValueTypeId = GeneratedColumn<int>(
+    'primary_value_type_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES value_types (id)',
+    ),
+  );
+  static const VerificationMeta _secondaryValueTypeIdMeta =
+      const VerificationMeta('secondaryValueTypeId');
+  @override
+  late final GeneratedColumn<int> secondaryValueTypeId = GeneratedColumn<int>(
+    'secondary_value_type_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES value_types (id)',
+    ),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    exerciseId,
+    formulaType,
+    primaryValueTypeId,
+    secondaryValueTypeId,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'exercise_record_formulas';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ExerciseRecordFormula> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('exercise_id')) {
+      context.handle(
+        _exerciseIdMeta,
+        exerciseId.isAcceptableOrUnknown(data['exercise_id']!, _exerciseIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_exerciseIdMeta);
+    }
+    if (data.containsKey('formula_type')) {
+      context.handle(
+        _formulaTypeMeta,
+        formulaType.isAcceptableOrUnknown(
+          data['formula_type']!,
+          _formulaTypeMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_formulaTypeMeta);
+    }
+    if (data.containsKey('primary_value_type_id')) {
+      context.handle(
+        _primaryValueTypeIdMeta,
+        primaryValueTypeId.isAcceptableOrUnknown(
+          data['primary_value_type_id']!,
+          _primaryValueTypeIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_primaryValueTypeIdMeta);
+    }
+    if (data.containsKey('secondary_value_type_id')) {
+      context.handle(
+        _secondaryValueTypeIdMeta,
+        secondaryValueTypeId.isAcceptableOrUnknown(
+          data['secondary_value_type_id']!,
+          _secondaryValueTypeIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ExerciseRecordFormula map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ExerciseRecordFormula(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      exerciseId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}exercise_id'],
+      )!,
+      formulaType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}formula_type'],
+      )!,
+      primaryValueTypeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}primary_value_type_id'],
+      )!,
+      secondaryValueTypeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}secondary_value_type_id'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $ExerciseRecordFormulasTable createAlias(String alias) {
+    return $ExerciseRecordFormulasTable(attachedDatabase, alias);
+  }
+}
+
+class ExerciseRecordFormula extends DataClass
+    implements Insertable<ExerciseRecordFormula> {
+  final int id;
+  final int exerciseId;
+  final String formulaType;
+  final int primaryValueTypeId;
+  final int? secondaryValueTypeId;
+  final DateTime createdAt;
+  const ExerciseRecordFormula({
+    required this.id,
+    required this.exerciseId,
+    required this.formulaType,
+    required this.primaryValueTypeId,
+    this.secondaryValueTypeId,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['exercise_id'] = Variable<int>(exerciseId);
+    map['formula_type'] = Variable<String>(formulaType);
+    map['primary_value_type_id'] = Variable<int>(primaryValueTypeId);
+    if (!nullToAbsent || secondaryValueTypeId != null) {
+      map['secondary_value_type_id'] = Variable<int>(secondaryValueTypeId);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  ExerciseRecordFormulasCompanion toCompanion(bool nullToAbsent) {
+    return ExerciseRecordFormulasCompanion(
+      id: Value(id),
+      exerciseId: Value(exerciseId),
+      formulaType: Value(formulaType),
+      primaryValueTypeId: Value(primaryValueTypeId),
+      secondaryValueTypeId: secondaryValueTypeId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(secondaryValueTypeId),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory ExerciseRecordFormula.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ExerciseRecordFormula(
+      id: serializer.fromJson<int>(json['id']),
+      exerciseId: serializer.fromJson<int>(json['exerciseId']),
+      formulaType: serializer.fromJson<String>(json['formulaType']),
+      primaryValueTypeId: serializer.fromJson<int>(json['primaryValueTypeId']),
+      secondaryValueTypeId: serializer.fromJson<int?>(
+        json['secondaryValueTypeId'],
+      ),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'exerciseId': serializer.toJson<int>(exerciseId),
+      'formulaType': serializer.toJson<String>(formulaType),
+      'primaryValueTypeId': serializer.toJson<int>(primaryValueTypeId),
+      'secondaryValueTypeId': serializer.toJson<int?>(secondaryValueTypeId),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  ExerciseRecordFormula copyWith({
+    int? id,
+    int? exerciseId,
+    String? formulaType,
+    int? primaryValueTypeId,
+    Value<int?> secondaryValueTypeId = const Value.absent(),
+    DateTime? createdAt,
+  }) => ExerciseRecordFormula(
+    id: id ?? this.id,
+    exerciseId: exerciseId ?? this.exerciseId,
+    formulaType: formulaType ?? this.formulaType,
+    primaryValueTypeId: primaryValueTypeId ?? this.primaryValueTypeId,
+    secondaryValueTypeId: secondaryValueTypeId.present
+        ? secondaryValueTypeId.value
+        : this.secondaryValueTypeId,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  ExerciseRecordFormula copyWithCompanion(
+    ExerciseRecordFormulasCompanion data,
+  ) {
+    return ExerciseRecordFormula(
+      id: data.id.present ? data.id.value : this.id,
+      exerciseId: data.exerciseId.present
+          ? data.exerciseId.value
+          : this.exerciseId,
+      formulaType: data.formulaType.present
+          ? data.formulaType.value
+          : this.formulaType,
+      primaryValueTypeId: data.primaryValueTypeId.present
+          ? data.primaryValueTypeId.value
+          : this.primaryValueTypeId,
+      secondaryValueTypeId: data.secondaryValueTypeId.present
+          ? data.secondaryValueTypeId.value
+          : this.secondaryValueTypeId,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ExerciseRecordFormula(')
+          ..write('id: $id, ')
+          ..write('exerciseId: $exerciseId, ')
+          ..write('formulaType: $formulaType, ')
+          ..write('primaryValueTypeId: $primaryValueTypeId, ')
+          ..write('secondaryValueTypeId: $secondaryValueTypeId, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    exerciseId,
+    formulaType,
+    primaryValueTypeId,
+    secondaryValueTypeId,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ExerciseRecordFormula &&
+          other.id == this.id &&
+          other.exerciseId == this.exerciseId &&
+          other.formulaType == this.formulaType &&
+          other.primaryValueTypeId == this.primaryValueTypeId &&
+          other.secondaryValueTypeId == this.secondaryValueTypeId &&
+          other.createdAt == this.createdAt);
+}
+
+class ExerciseRecordFormulasCompanion
+    extends UpdateCompanion<ExerciseRecordFormula> {
+  final Value<int> id;
+  final Value<int> exerciseId;
+  final Value<String> formulaType;
+  final Value<int> primaryValueTypeId;
+  final Value<int?> secondaryValueTypeId;
+  final Value<DateTime> createdAt;
+  const ExerciseRecordFormulasCompanion({
+    this.id = const Value.absent(),
+    this.exerciseId = const Value.absent(),
+    this.formulaType = const Value.absent(),
+    this.primaryValueTypeId = const Value.absent(),
+    this.secondaryValueTypeId = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  ExerciseRecordFormulasCompanion.insert({
+    this.id = const Value.absent(),
+    required int exerciseId,
+    required String formulaType,
+    required int primaryValueTypeId,
+    this.secondaryValueTypeId = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  }) : exerciseId = Value(exerciseId),
+       formulaType = Value(formulaType),
+       primaryValueTypeId = Value(primaryValueTypeId);
+  static Insertable<ExerciseRecordFormula> custom({
+    Expression<int>? id,
+    Expression<int>? exerciseId,
+    Expression<String>? formulaType,
+    Expression<int>? primaryValueTypeId,
+    Expression<int>? secondaryValueTypeId,
+    Expression<DateTime>? createdAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (exerciseId != null) 'exercise_id': exerciseId,
+      if (formulaType != null) 'formula_type': formulaType,
+      if (primaryValueTypeId != null)
+        'primary_value_type_id': primaryValueTypeId,
+      if (secondaryValueTypeId != null)
+        'secondary_value_type_id': secondaryValueTypeId,
+      if (createdAt != null) 'created_at': createdAt,
+    });
+  }
+
+  ExerciseRecordFormulasCompanion copyWith({
+    Value<int>? id,
+    Value<int>? exerciseId,
+    Value<String>? formulaType,
+    Value<int>? primaryValueTypeId,
+    Value<int?>? secondaryValueTypeId,
+    Value<DateTime>? createdAt,
+  }) {
+    return ExerciseRecordFormulasCompanion(
+      id: id ?? this.id,
+      exerciseId: exerciseId ?? this.exerciseId,
+      formulaType: formulaType ?? this.formulaType,
+      primaryValueTypeId: primaryValueTypeId ?? this.primaryValueTypeId,
+      secondaryValueTypeId: secondaryValueTypeId ?? this.secondaryValueTypeId,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (exerciseId.present) {
+      map['exercise_id'] = Variable<int>(exerciseId.value);
+    }
+    if (formulaType.present) {
+      map['formula_type'] = Variable<String>(formulaType.value);
+    }
+    if (primaryValueTypeId.present) {
+      map['primary_value_type_id'] = Variable<int>(primaryValueTypeId.value);
+    }
+    if (secondaryValueTypeId.present) {
+      map['secondary_value_type_id'] = Variable<int>(
+        secondaryValueTypeId.value,
+      );
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ExerciseRecordFormulasCompanion(')
+          ..write('id: $id, ')
+          ..write('exerciseId: $exerciseId, ')
+          ..write('formulaType: $formulaType, ')
+          ..write('primaryValueTypeId: $primaryValueTypeId, ')
+          ..write('secondaryValueTypeId: $secondaryValueTypeId, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $PersonalRecordsTable extends PersonalRecords
+    with TableInfo<$PersonalRecordsTable, PersonalRecord> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PersonalRecordsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<int> userId = GeneratedColumn<int>(
+    'user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id)',
+    ),
+  );
+  static const VerificationMeta _exerciseIdMeta = const VerificationMeta(
+    'exerciseId',
+  );
+  @override
+  late final GeneratedColumn<int> exerciseId = GeneratedColumn<int>(
+    'exercise_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES exercises (id)',
+    ),
+  );
+  static const VerificationMeta _recordValueMeta = const VerificationMeta(
+    'recordValue',
+  );
+  @override
+  late final GeneratedColumn<double> recordValue = GeneratedColumn<double>(
+    'record_value',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _displayTextMeta = const VerificationMeta(
+    'displayText',
+  );
+  @override
+  late final GeneratedColumn<String> displayText = GeneratedColumn<String>(
+    'display_text',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _achievedAtMeta = const VerificationMeta(
+    'achievedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> achievedAt = GeneratedColumn<DateTime>(
+    'achieved_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _setIdMeta = const VerificationMeta('setId');
+  @override
+  late final GeneratedColumn<int> setId = GeneratedColumn<int>(
+    'set_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES sets (id)',
+    ),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    userId,
+    exerciseId,
+    recordValue,
+    displayText,
+    achievedAt,
+    setId,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'personal_records';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<PersonalRecord> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('exercise_id')) {
+      context.handle(
+        _exerciseIdMeta,
+        exerciseId.isAcceptableOrUnknown(data['exercise_id']!, _exerciseIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_exerciseIdMeta);
+    }
+    if (data.containsKey('record_value')) {
+      context.handle(
+        _recordValueMeta,
+        recordValue.isAcceptableOrUnknown(
+          data['record_value']!,
+          _recordValueMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_recordValueMeta);
+    }
+    if (data.containsKey('display_text')) {
+      context.handle(
+        _displayTextMeta,
+        displayText.isAcceptableOrUnknown(
+          data['display_text']!,
+          _displayTextMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_displayTextMeta);
+    }
+    if (data.containsKey('achieved_at')) {
+      context.handle(
+        _achievedAtMeta,
+        achievedAt.isAcceptableOrUnknown(data['achieved_at']!, _achievedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_achievedAtMeta);
+    }
+    if (data.containsKey('set_id')) {
+      context.handle(
+        _setIdMeta,
+        setId.isAcceptableOrUnknown(data['set_id']!, _setIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_setIdMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {userId, exerciseId};
+  @override
+  PersonalRecord map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PersonalRecord(
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}user_id'],
+      )!,
+      exerciseId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}exercise_id'],
+      )!,
+      recordValue: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}record_value'],
+      )!,
+      displayText: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}display_text'],
+      )!,
+      achievedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}achieved_at'],
+      )!,
+      setId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}set_id'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $PersonalRecordsTable createAlias(String alias) {
+    return $PersonalRecordsTable(attachedDatabase, alias);
+  }
+}
+
+class PersonalRecord extends DataClass implements Insertable<PersonalRecord> {
+  final int userId;
+  final int exerciseId;
+  final double recordValue;
+  final String displayText;
+  final DateTime achievedAt;
+  final int setId;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const PersonalRecord({
+    required this.userId,
+    required this.exerciseId,
+    required this.recordValue,
+    required this.displayText,
+    required this.achievedAt,
+    required this.setId,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['user_id'] = Variable<int>(userId);
+    map['exercise_id'] = Variable<int>(exerciseId);
+    map['record_value'] = Variable<double>(recordValue);
+    map['display_text'] = Variable<String>(displayText);
+    map['achieved_at'] = Variable<DateTime>(achievedAt);
+    map['set_id'] = Variable<int>(setId);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  PersonalRecordsCompanion toCompanion(bool nullToAbsent) {
+    return PersonalRecordsCompanion(
+      userId: Value(userId),
+      exerciseId: Value(exerciseId),
+      recordValue: Value(recordValue),
+      displayText: Value(displayText),
+      achievedAt: Value(achievedAt),
+      setId: Value(setId),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory PersonalRecord.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PersonalRecord(
+      userId: serializer.fromJson<int>(json['userId']),
+      exerciseId: serializer.fromJson<int>(json['exerciseId']),
+      recordValue: serializer.fromJson<double>(json['recordValue']),
+      displayText: serializer.fromJson<String>(json['displayText']),
+      achievedAt: serializer.fromJson<DateTime>(json['achievedAt']),
+      setId: serializer.fromJson<int>(json['setId']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'userId': serializer.toJson<int>(userId),
+      'exerciseId': serializer.toJson<int>(exerciseId),
+      'recordValue': serializer.toJson<double>(recordValue),
+      'displayText': serializer.toJson<String>(displayText),
+      'achievedAt': serializer.toJson<DateTime>(achievedAt),
+      'setId': serializer.toJson<int>(setId),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  PersonalRecord copyWith({
+    int? userId,
+    int? exerciseId,
+    double? recordValue,
+    String? displayText,
+    DateTime? achievedAt,
+    int? setId,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => PersonalRecord(
+    userId: userId ?? this.userId,
+    exerciseId: exerciseId ?? this.exerciseId,
+    recordValue: recordValue ?? this.recordValue,
+    displayText: displayText ?? this.displayText,
+    achievedAt: achievedAt ?? this.achievedAt,
+    setId: setId ?? this.setId,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  PersonalRecord copyWithCompanion(PersonalRecordsCompanion data) {
+    return PersonalRecord(
+      userId: data.userId.present ? data.userId.value : this.userId,
+      exerciseId: data.exerciseId.present
+          ? data.exerciseId.value
+          : this.exerciseId,
+      recordValue: data.recordValue.present
+          ? data.recordValue.value
+          : this.recordValue,
+      displayText: data.displayText.present
+          ? data.displayText.value
+          : this.displayText,
+      achievedAt: data.achievedAt.present
+          ? data.achievedAt.value
+          : this.achievedAt,
+      setId: data.setId.present ? data.setId.value : this.setId,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PersonalRecord(')
+          ..write('userId: $userId, ')
+          ..write('exerciseId: $exerciseId, ')
+          ..write('recordValue: $recordValue, ')
+          ..write('displayText: $displayText, ')
+          ..write('achievedAt: $achievedAt, ')
+          ..write('setId: $setId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    userId,
+    exerciseId,
+    recordValue,
+    displayText,
+    achievedAt,
+    setId,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PersonalRecord &&
+          other.userId == this.userId &&
+          other.exerciseId == this.exerciseId &&
+          other.recordValue == this.recordValue &&
+          other.displayText == this.displayText &&
+          other.achievedAt == this.achievedAt &&
+          other.setId == this.setId &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class PersonalRecordsCompanion extends UpdateCompanion<PersonalRecord> {
+  final Value<int> userId;
+  final Value<int> exerciseId;
+  final Value<double> recordValue;
+  final Value<String> displayText;
+  final Value<DateTime> achievedAt;
+  final Value<int> setId;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const PersonalRecordsCompanion({
+    this.userId = const Value.absent(),
+    this.exerciseId = const Value.absent(),
+    this.recordValue = const Value.absent(),
+    this.displayText = const Value.absent(),
+    this.achievedAt = const Value.absent(),
+    this.setId = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  PersonalRecordsCompanion.insert({
+    required int userId,
+    required int exerciseId,
+    required double recordValue,
+    required String displayText,
+    required DateTime achievedAt,
+    required int setId,
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : userId = Value(userId),
+       exerciseId = Value(exerciseId),
+       recordValue = Value(recordValue),
+       displayText = Value(displayText),
+       achievedAt = Value(achievedAt),
+       setId = Value(setId);
+  static Insertable<PersonalRecord> custom({
+    Expression<int>? userId,
+    Expression<int>? exerciseId,
+    Expression<double>? recordValue,
+    Expression<String>? displayText,
+    Expression<DateTime>? achievedAt,
+    Expression<int>? setId,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (userId != null) 'user_id': userId,
+      if (exerciseId != null) 'exercise_id': exerciseId,
+      if (recordValue != null) 'record_value': recordValue,
+      if (displayText != null) 'display_text': displayText,
+      if (achievedAt != null) 'achieved_at': achievedAt,
+      if (setId != null) 'set_id': setId,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  PersonalRecordsCompanion copyWith({
+    Value<int>? userId,
+    Value<int>? exerciseId,
+    Value<double>? recordValue,
+    Value<String>? displayText,
+    Value<DateTime>? achievedAt,
+    Value<int>? setId,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return PersonalRecordsCompanion(
+      userId: userId ?? this.userId,
+      exerciseId: exerciseId ?? this.exerciseId,
+      recordValue: recordValue ?? this.recordValue,
+      displayText: displayText ?? this.displayText,
+      achievedAt: achievedAt ?? this.achievedAt,
+      setId: setId ?? this.setId,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (userId.present) {
+      map['user_id'] = Variable<int>(userId.value);
+    }
+    if (exerciseId.present) {
+      map['exercise_id'] = Variable<int>(exerciseId.value);
+    }
+    if (recordValue.present) {
+      map['record_value'] = Variable<double>(recordValue.value);
+    }
+    if (displayText.present) {
+      map['display_text'] = Variable<String>(displayText.value);
+    }
+    if (achievedAt.present) {
+      map['achieved_at'] = Variable<DateTime>(achievedAt.value);
+    }
+    if (setId.present) {
+      map['set_id'] = Variable<int>(setId.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PersonalRecordsCompanion(')
+          ..write('userId: $userId, ')
+          ..write('exerciseId: $exerciseId, ')
+          ..write('recordValue: $recordValue, ')
+          ..write('displayText: $displayText, ')
+          ..write('achievedAt: $achievedAt, ')
+          ..write('setId: $setId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $TimersTable extends Timers with TableInfo<$TimersTable, Timer> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -7328,6 +8305,11 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   );
   late final $SetsTable sets = $SetsTable(this);
   late final $SetValuesTable setValues = $SetValuesTable(this);
+  late final $ExerciseRecordFormulasTable exerciseRecordFormulas =
+      $ExerciseRecordFormulasTable(this);
+  late final $PersonalRecordsTable personalRecords = $PersonalRecordsTable(
+    this,
+  );
   late final $TimersTable timers = $TimersTable(this);
   late final $RoutinesTable routines = $RoutinesTable(this);
   late final $RoutineDaysTable routineDays = $RoutineDaysTable(this);
@@ -7353,6 +8335,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     workoutExercises,
     sets,
     setValues,
+    exerciseRecordFormulas,
+    personalRecords,
     timers,
     routines,
     routineDays,
@@ -7464,6 +8448,26 @@ final class $$UsersTableReferences
     ).filter((f) => f.userId.id.sqlEquals($_itemColumn<int>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_workoutsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$PersonalRecordsTable, List<PersonalRecord>>
+  _personalRecordsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.personalRecords,
+    aliasName: $_aliasNameGenerator(db.users.id, db.personalRecords.userId),
+  );
+
+  $$PersonalRecordsTableProcessedTableManager get personalRecordsRefs {
+    final manager = $$PersonalRecordsTableTableManager(
+      $_db,
+      $_db.personalRecords,
+    ).filter((f) => f.userId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _personalRecordsRefsTable($_db),
+    );
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -7647,6 +8651,31 @@ class $$UsersTableFilterComposer extends Composer<_$AppDatabase, $UsersTable> {
           }) => $$WorkoutsTableFilterComposer(
             $db: $db,
             $table: $db.workouts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> personalRecordsRefs(
+    Expression<bool> Function($$PersonalRecordsTableFilterComposer f) f,
+  ) {
+    final $$PersonalRecordsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.personalRecords,
+      getReferencedColumn: (t) => t.userId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PersonalRecordsTableFilterComposer(
+            $db: $db,
+            $table: $db.personalRecords,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -7875,6 +8904,31 @@ class $$UsersTableAnnotationComposer
     return f(composer);
   }
 
+  Expression<T> personalRecordsRefs<T extends Object>(
+    Expression<T> Function($$PersonalRecordsTableAnnotationComposer a) f,
+  ) {
+    final $$PersonalRecordsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.personalRecords,
+      getReferencedColumn: (t) => t.userId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PersonalRecordsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.personalRecords,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
   Expression<T> timersRefs<T extends Object>(
     Expression<T> Function($$TimersTableAnnotationComposer a) f,
   ) {
@@ -7945,6 +8999,7 @@ class $$UsersTableTableManager
             bool exerciseTypesRefs,
             bool exercisesRefs,
             bool workoutsRefs,
+            bool personalRecordsRefs,
             bool timersRefs,
             bool routinesRefs,
           })
@@ -7989,6 +9044,7 @@ class $$UsersTableTableManager
                 exerciseTypesRefs = false,
                 exercisesRefs = false,
                 workoutsRefs = false,
+                personalRecordsRefs = false,
                 timersRefs = false,
                 routinesRefs = false,
               }) {
@@ -8000,6 +9056,7 @@ class $$UsersTableTableManager
                     if (exerciseTypesRefs) db.exerciseTypes,
                     if (exercisesRefs) db.exercises,
                     if (workoutsRefs) db.workouts,
+                    if (personalRecordsRefs) db.personalRecords,
                     if (timersRefs) db.timers,
                     if (routinesRefs) db.routines,
                   ],
@@ -8091,6 +9148,27 @@ class $$UsersTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (personalRecordsRefs)
+                        await $_getPrefetchedData<
+                          User,
+                          $UsersTable,
+                          PersonalRecord
+                        >(
+                          currentTable: table,
+                          referencedTable: $$UsersTableReferences
+                              ._personalRecordsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$UsersTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).personalRecordsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.userId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                       if (timersRefs)
                         await $_getPrefetchedData<User, $UsersTable, Timer>(
                           currentTable: table,
@@ -8147,6 +9225,7 @@ typedef $$UsersTableProcessedTableManager =
         bool exerciseTypesRefs,
         bool exercisesRefs,
         bool workoutsRefs,
+        bool personalRecordsRefs,
         bool timersRefs,
         bool routinesRefs,
       })
@@ -9633,6 +10712,57 @@ final class $$ExercisesTableReferences
     );
   }
 
+  static MultiTypedResultKey<
+    $ExerciseRecordFormulasTable,
+    List<ExerciseRecordFormula>
+  >
+  _exerciseRecordFormulasRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.exerciseRecordFormulas,
+        aliasName: $_aliasNameGenerator(
+          db.exercises.id,
+          db.exerciseRecordFormulas.exerciseId,
+        ),
+      );
+
+  $$ExerciseRecordFormulasTableProcessedTableManager
+  get exerciseRecordFormulasRefs {
+    final manager = $$ExerciseRecordFormulasTableTableManager(
+      $_db,
+      $_db.exerciseRecordFormulas,
+    ).filter((f) => f.exerciseId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _exerciseRecordFormulasRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$PersonalRecordsTable, List<PersonalRecord>>
+  _personalRecordsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.personalRecords,
+    aliasName: $_aliasNameGenerator(
+      db.exercises.id,
+      db.personalRecords.exerciseId,
+    ),
+  );
+
+  $$PersonalRecordsTableProcessedTableManager get personalRecordsRefs {
+    final manager = $$PersonalRecordsTableTableManager(
+      $_db,
+      $_db.personalRecords,
+    ).filter((f) => f.exerciseId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _personalRecordsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
   static MultiTypedResultKey<$TimersTable, List<Timer>> _timersRefsTable(
     _$AppDatabase db,
   ) => MultiTypedResultKey.fromTable(
@@ -9858,6 +10988,57 @@ class $$ExercisesTableFilterComposer
           }) => $$WorkoutExercisesTableFilterComposer(
             $db: $db,
             $table: $db.workoutExercises,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> exerciseRecordFormulasRefs(
+    Expression<bool> Function($$ExerciseRecordFormulasTableFilterComposer f) f,
+  ) {
+    final $$ExerciseRecordFormulasTableFilterComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.exerciseRecordFormulas,
+          getReferencedColumn: (t) => t.exerciseId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$ExerciseRecordFormulasTableFilterComposer(
+                $db: $db,
+                $table: $db.exerciseRecordFormulas,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<bool> personalRecordsRefs(
+    Expression<bool> Function($$PersonalRecordsTableFilterComposer f) f,
+  ) {
+    final $$PersonalRecordsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.personalRecords,
+      getReferencedColumn: (t) => t.exerciseId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PersonalRecordsTableFilterComposer(
+            $db: $db,
+            $table: $db.personalRecords,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -10163,6 +11344,57 @@ class $$ExercisesTableAnnotationComposer
     return f(composer);
   }
 
+  Expression<T> exerciseRecordFormulasRefs<T extends Object>(
+    Expression<T> Function($$ExerciseRecordFormulasTableAnnotationComposer a) f,
+  ) {
+    final $$ExerciseRecordFormulasTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.exerciseRecordFormulas,
+          getReferencedColumn: (t) => t.exerciseId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$ExerciseRecordFormulasTableAnnotationComposer(
+                $db: $db,
+                $table: $db.exerciseRecordFormulas,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<T> personalRecordsRefs<T extends Object>(
+    Expression<T> Function($$PersonalRecordsTableAnnotationComposer a) f,
+  ) {
+    final $$PersonalRecordsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.personalRecords,
+      getReferencedColumn: (t) => t.exerciseId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PersonalRecordsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.personalRecords,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
   Expression<T> timersRefs<T extends Object>(
     Expression<T> Function($$TimersTableAnnotationComposer a) f,
   ) {
@@ -10235,6 +11467,8 @@ class $$ExercisesTableTableManager
             bool exerciseCategoriesRefs,
             bool exerciseTypeLinksRefs,
             bool workoutExercisesRefs,
+            bool exerciseRecordFormulasRefs,
+            bool personalRecordsRefs,
             bool timersRefs,
             bool routineDayExercisesRefs,
           })
@@ -10302,6 +11536,8 @@ class $$ExercisesTableTableManager
                 exerciseCategoriesRefs = false,
                 exerciseTypeLinksRefs = false,
                 workoutExercisesRefs = false,
+                exerciseRecordFormulasRefs = false,
+                personalRecordsRefs = false,
                 timersRefs = false,
                 routineDayExercisesRefs = false,
               }) {
@@ -10313,6 +11549,8 @@ class $$ExercisesTableTableManager
                     if (exerciseCategoriesRefs) db.exerciseCategories,
                     if (exerciseTypeLinksRefs) db.exerciseTypeLinks,
                     if (workoutExercisesRefs) db.workoutExercises,
+                    if (exerciseRecordFormulasRefs) db.exerciseRecordFormulas,
+                    if (personalRecordsRefs) db.personalRecords,
                     if (timersRefs) db.timers,
                     if (routineDayExercisesRefs) db.routineDayExercises,
                   ],
@@ -10455,6 +11693,48 @@ class $$ExercisesTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (exerciseRecordFormulasRefs)
+                        await $_getPrefetchedData<
+                          Exercise,
+                          $ExercisesTable,
+                          ExerciseRecordFormula
+                        >(
+                          currentTable: table,
+                          referencedTable: $$ExercisesTableReferences
+                              ._exerciseRecordFormulasRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$ExercisesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).exerciseRecordFormulasRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.exerciseId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (personalRecordsRefs)
+                        await $_getPrefetchedData<
+                          Exercise,
+                          $ExercisesTable,
+                          PersonalRecord
+                        >(
+                          currentTable: table,
+                          referencedTable: $$ExercisesTableReferences
+                              ._personalRecordsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$ExercisesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).personalRecordsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.exerciseId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                       if (timersRefs)
                         await $_getPrefetchedData<
                           Exercise,
@@ -10524,6 +11804,8 @@ typedef $$ExercisesTableProcessedTableManager =
         bool exerciseCategoriesRefs,
         bool exerciseTypeLinksRefs,
         bool workoutExercisesRefs,
+        bool exerciseRecordFormulasRefs,
+        bool personalRecordsRefs,
         bool timersRefs,
         bool routineDayExercisesRefs,
       })
@@ -10610,6 +11892,60 @@ final class $$ValueTypesTableReferences
     ).filter((f) => f.valueTypeId.id.sqlEquals($_itemColumn<int>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_setValuesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $ExerciseRecordFormulasTable,
+    List<ExerciseRecordFormula>
+  >
+  _primaryValueTypeTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.exerciseRecordFormulas,
+    aliasName: $_aliasNameGenerator(
+      db.valueTypes.id,
+      db.exerciseRecordFormulas.primaryValueTypeId,
+    ),
+  );
+
+  $$ExerciseRecordFormulasTableProcessedTableManager get primaryValueType {
+    final manager =
+        $$ExerciseRecordFormulasTableTableManager(
+          $_db,
+          $_db.exerciseRecordFormulas,
+        ).filter(
+          (f) => f.primaryValueTypeId.id.sqlEquals($_itemColumn<int>('id')!),
+        );
+
+    final cache = $_typedResult.readTableOrNull(_primaryValueTypeTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $ExerciseRecordFormulasTable,
+    List<ExerciseRecordFormula>
+  >
+  _secondaryValueTypeTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.exerciseRecordFormulas,
+    aliasName: $_aliasNameGenerator(
+      db.valueTypes.id,
+      db.exerciseRecordFormulas.secondaryValueTypeId,
+    ),
+  );
+
+  $$ExerciseRecordFormulasTableProcessedTableManager get secondaryValueType {
+    final manager =
+        $$ExerciseRecordFormulasTableTableManager(
+          $_db,
+          $_db.exerciseRecordFormulas,
+        ).filter(
+          (f) => f.secondaryValueTypeId.id.sqlEquals($_itemColumn<int>('id')!),
+        );
+
+    final cache = $_typedResult.readTableOrNull(_secondaryValueTypeTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -10722,6 +12058,58 @@ class $$ValueTypesTableFilterComposer
                 $removeJoinBuilderFromRootComposer,
           ),
     );
+    return f(composer);
+  }
+
+  Expression<bool> primaryValueType(
+    Expression<bool> Function($$ExerciseRecordFormulasTableFilterComposer f) f,
+  ) {
+    final $$ExerciseRecordFormulasTableFilterComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.exerciseRecordFormulas,
+          getReferencedColumn: (t) => t.primaryValueTypeId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$ExerciseRecordFormulasTableFilterComposer(
+                $db: $db,
+                $table: $db.exerciseRecordFormulas,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<bool> secondaryValueType(
+    Expression<bool> Function($$ExerciseRecordFormulasTableFilterComposer f) f,
+  ) {
+    final $$ExerciseRecordFormulasTableFilterComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.exerciseRecordFormulas,
+          getReferencedColumn: (t) => t.secondaryValueTypeId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$ExerciseRecordFormulasTableFilterComposer(
+                $db: $db,
+                $table: $db.exerciseRecordFormulas,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
     return f(composer);
   }
 }
@@ -10861,6 +12249,58 @@ class $$ValueTypesTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> primaryValueType<T extends Object>(
+    Expression<T> Function($$ExerciseRecordFormulasTableAnnotationComposer a) f,
+  ) {
+    final $$ExerciseRecordFormulasTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.exerciseRecordFormulas,
+          getReferencedColumn: (t) => t.primaryValueTypeId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$ExerciseRecordFormulasTableAnnotationComposer(
+                $db: $db,
+                $table: $db.exerciseRecordFormulas,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<T> secondaryValueType<T extends Object>(
+    Expression<T> Function($$ExerciseRecordFormulasTableAnnotationComposer a) f,
+  ) {
+    final $$ExerciseRecordFormulasTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.exerciseRecordFormulas,
+          getReferencedColumn: (t) => t.secondaryValueTypeId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$ExerciseRecordFormulasTableAnnotationComposer(
+                $db: $db,
+                $table: $db.exerciseRecordFormulas,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
 }
 
 class $$ValueTypesTableTableManager
@@ -10880,6 +12320,8 @@ class $$ValueTypesTableTableManager
             bool categoricalValuesRefs,
             bool exerciseValueTypesRefs,
             bool setValuesRefs,
+            bool primaryValueType,
+            bool secondaryValueType,
           })
         > {
   $$ValueTypesTableTableManager(_$AppDatabase db, $ValueTypesTable table)
@@ -10934,6 +12376,8 @@ class $$ValueTypesTableTableManager
                 categoricalValuesRefs = false,
                 exerciseValueTypesRefs = false,
                 setValuesRefs = false,
+                primaryValueType = false,
+                secondaryValueType = false,
               }) {
                 return PrefetchHooks(
                   db: db,
@@ -10941,6 +12385,8 @@ class $$ValueTypesTableTableManager
                     if (categoricalValuesRefs) db.categoricalValues,
                     if (exerciseValueTypesRefs) db.exerciseValueTypes,
                     if (setValuesRefs) db.setValues,
+                    if (primaryValueType) db.exerciseRecordFormulas,
+                    if (secondaryValueType) db.exerciseRecordFormulas,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
@@ -11008,6 +12454,48 @@ class $$ValueTypesTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (primaryValueType)
+                        await $_getPrefetchedData<
+                          ValueType,
+                          $ValueTypesTable,
+                          ExerciseRecordFormula
+                        >(
+                          currentTable: table,
+                          referencedTable: $$ValueTypesTableReferences
+                              ._primaryValueTypeTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$ValueTypesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).primaryValueType,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.primaryValueTypeId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (secondaryValueType)
+                        await $_getPrefetchedData<
+                          ValueType,
+                          $ValueTypesTable,
+                          ExerciseRecordFormula
+                        >(
+                          currentTable: table,
+                          referencedTable: $$ValueTypesTableReferences
+                              ._secondaryValueTypeTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$ValueTypesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).secondaryValueType,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.secondaryValueTypeId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -11032,6 +12520,8 @@ typedef $$ValueTypesTableProcessedTableManager =
         bool categoricalValuesRefs,
         bool exerciseValueTypesRefs,
         bool setValuesRefs,
+        bool primaryValueType,
+        bool secondaryValueType,
       })
     >;
 typedef $$CategoricalValuesTableCreateCompanionBuilder =
@@ -14160,6 +15650,26 @@ final class $$SetsTableReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<$PersonalRecordsTable, List<PersonalRecord>>
+  _personalRecordsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.personalRecords,
+    aliasName: $_aliasNameGenerator(db.sets.id, db.personalRecords.setId),
+  );
+
+  $$PersonalRecordsTableProcessedTableManager get personalRecordsRefs {
+    final manager = $$PersonalRecordsTableTableManager(
+      $_db,
+      $_db.personalRecords,
+    ).filter((f) => f.setId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _personalRecordsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$SetsTableFilterComposer extends Composer<_$AppDatabase, $SetsTable> {
@@ -14239,6 +15749,31 @@ class $$SetsTableFilterComposer extends Composer<_$AppDatabase, $SetsTable> {
           }) => $$SetValuesTableFilterComposer(
             $db: $db,
             $table: $db.setValues,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> personalRecordsRefs(
+    Expression<bool> Function($$PersonalRecordsTableFilterComposer f) f,
+  ) {
+    final $$PersonalRecordsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.personalRecords,
+      getReferencedColumn: (t) => t.setId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PersonalRecordsTableFilterComposer(
+            $db: $db,
+            $table: $db.personalRecords,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -14391,6 +15926,31 @@ class $$SetsTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> personalRecordsRefs<T extends Object>(
+    Expression<T> Function($$PersonalRecordsTableAnnotationComposer a) f,
+  ) {
+    final $$PersonalRecordsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.personalRecords,
+      getReferencedColumn: (t) => t.setId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PersonalRecordsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.personalRecords,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$SetsTableTableManager
@@ -14406,7 +15966,11 @@ class $$SetsTableTableManager
           $$SetsTableUpdateCompanionBuilder,
           (WorkoutSet, $$SetsTableReferences),
           WorkoutSet,
-          PrefetchHooks Function({bool workoutExerciseId, bool setValuesRefs})
+          PrefetchHooks Function({
+            bool workoutExerciseId,
+            bool setValuesRefs,
+            bool personalRecordsRefs,
+          })
         > {
   $$SetsTableTableManager(_$AppDatabase db, $SetsTable table)
     : super(
@@ -14462,10 +16026,17 @@ class $$SetsTableTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({workoutExerciseId = false, setValuesRefs = false}) {
+              ({
+                workoutExerciseId = false,
+                setValuesRefs = false,
+                personalRecordsRefs = false,
+              }) {
                 return PrefetchHooks(
                   db: db,
-                  explicitlyWatchedTables: [if (setValuesRefs) db.setValues],
+                  explicitlyWatchedTables: [
+                    if (setValuesRefs) db.setValues,
+                    if (personalRecordsRefs) db.personalRecords,
+                  ],
                   addJoins:
                       <
                         T extends TableManagerState<
@@ -14520,6 +16091,26 @@ class $$SetsTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (personalRecordsRefs)
+                        await $_getPrefetchedData<
+                          WorkoutSet,
+                          $SetsTable,
+                          PersonalRecord
+                        >(
+                          currentTable: table,
+                          referencedTable: $$SetsTableReferences
+                              ._personalRecordsRefsTable(db),
+                          managerFromTypedResult: (p0) => $$SetsTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).personalRecordsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.setId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -14540,7 +16131,11 @@ typedef $$SetsTableProcessedTableManager =
       $$SetsTableUpdateCompanionBuilder,
       (WorkoutSet, $$SetsTableReferences),
       WorkoutSet,
-      PrefetchHooks Function({bool workoutExerciseId, bool setValuesRefs})
+      PrefetchHooks Function({
+        bool workoutExerciseId,
+        bool setValuesRefs,
+        bool personalRecordsRefs,
+      })
     >;
 typedef $$SetValuesTableCreateCompanionBuilder =
     SetValuesCompanion Function({
@@ -15066,6 +16661,1136 @@ typedef $$SetValuesTableProcessedTableManager =
         bool valueTypeId,
         bool categoricalValueId,
       })
+    >;
+typedef $$ExerciseRecordFormulasTableCreateCompanionBuilder =
+    ExerciseRecordFormulasCompanion Function({
+      Value<int> id,
+      required int exerciseId,
+      required String formulaType,
+      required int primaryValueTypeId,
+      Value<int?> secondaryValueTypeId,
+      Value<DateTime> createdAt,
+    });
+typedef $$ExerciseRecordFormulasTableUpdateCompanionBuilder =
+    ExerciseRecordFormulasCompanion Function({
+      Value<int> id,
+      Value<int> exerciseId,
+      Value<String> formulaType,
+      Value<int> primaryValueTypeId,
+      Value<int?> secondaryValueTypeId,
+      Value<DateTime> createdAt,
+    });
+
+final class $$ExerciseRecordFormulasTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $ExerciseRecordFormulasTable,
+          ExerciseRecordFormula
+        > {
+  $$ExerciseRecordFormulasTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $ExercisesTable _exerciseIdTable(_$AppDatabase db) =>
+      db.exercises.createAlias(
+        $_aliasNameGenerator(
+          db.exerciseRecordFormulas.exerciseId,
+          db.exercises.id,
+        ),
+      );
+
+  $$ExercisesTableProcessedTableManager get exerciseId {
+    final $_column = $_itemColumn<int>('exercise_id')!;
+
+    final manager = $$ExercisesTableTableManager(
+      $_db,
+      $_db.exercises,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_exerciseIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $ValueTypesTable _primaryValueTypeIdTable(_$AppDatabase db) =>
+      db.valueTypes.createAlias(
+        $_aliasNameGenerator(
+          db.exerciseRecordFormulas.primaryValueTypeId,
+          db.valueTypes.id,
+        ),
+      );
+
+  $$ValueTypesTableProcessedTableManager get primaryValueTypeId {
+    final $_column = $_itemColumn<int>('primary_value_type_id')!;
+
+    final manager = $$ValueTypesTableTableManager(
+      $_db,
+      $_db.valueTypes,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_primaryValueTypeIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $ValueTypesTable _secondaryValueTypeIdTable(_$AppDatabase db) =>
+      db.valueTypes.createAlias(
+        $_aliasNameGenerator(
+          db.exerciseRecordFormulas.secondaryValueTypeId,
+          db.valueTypes.id,
+        ),
+      );
+
+  $$ValueTypesTableProcessedTableManager? get secondaryValueTypeId {
+    final $_column = $_itemColumn<int>('secondary_value_type_id');
+    if ($_column == null) return null;
+    final manager = $$ValueTypesTableTableManager(
+      $_db,
+      $_db.valueTypes,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(
+      _secondaryValueTypeIdTable($_db),
+    );
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$ExerciseRecordFormulasTableFilterComposer
+    extends Composer<_$AppDatabase, $ExerciseRecordFormulasTable> {
+  $$ExerciseRecordFormulasTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get formulaType => $composableBuilder(
+    column: $table.formulaType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$ExercisesTableFilterComposer get exerciseId {
+    final $$ExercisesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.exerciseId,
+      referencedTable: $db.exercises,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ExercisesTableFilterComposer(
+            $db: $db,
+            $table: $db.exercises,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$ValueTypesTableFilterComposer get primaryValueTypeId {
+    final $$ValueTypesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.primaryValueTypeId,
+      referencedTable: $db.valueTypes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ValueTypesTableFilterComposer(
+            $db: $db,
+            $table: $db.valueTypes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$ValueTypesTableFilterComposer get secondaryValueTypeId {
+    final $$ValueTypesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.secondaryValueTypeId,
+      referencedTable: $db.valueTypes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ValueTypesTableFilterComposer(
+            $db: $db,
+            $table: $db.valueTypes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$ExerciseRecordFormulasTableOrderingComposer
+    extends Composer<_$AppDatabase, $ExerciseRecordFormulasTable> {
+  $$ExerciseRecordFormulasTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get formulaType => $composableBuilder(
+    column: $table.formulaType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$ExercisesTableOrderingComposer get exerciseId {
+    final $$ExercisesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.exerciseId,
+      referencedTable: $db.exercises,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ExercisesTableOrderingComposer(
+            $db: $db,
+            $table: $db.exercises,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$ValueTypesTableOrderingComposer get primaryValueTypeId {
+    final $$ValueTypesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.primaryValueTypeId,
+      referencedTable: $db.valueTypes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ValueTypesTableOrderingComposer(
+            $db: $db,
+            $table: $db.valueTypes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$ValueTypesTableOrderingComposer get secondaryValueTypeId {
+    final $$ValueTypesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.secondaryValueTypeId,
+      referencedTable: $db.valueTypes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ValueTypesTableOrderingComposer(
+            $db: $db,
+            $table: $db.valueTypes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$ExerciseRecordFormulasTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ExerciseRecordFormulasTable> {
+  $$ExerciseRecordFormulasTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get formulaType => $composableBuilder(
+    column: $table.formulaType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  $$ExercisesTableAnnotationComposer get exerciseId {
+    final $$ExercisesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.exerciseId,
+      referencedTable: $db.exercises,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ExercisesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.exercises,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$ValueTypesTableAnnotationComposer get primaryValueTypeId {
+    final $$ValueTypesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.primaryValueTypeId,
+      referencedTable: $db.valueTypes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ValueTypesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.valueTypes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$ValueTypesTableAnnotationComposer get secondaryValueTypeId {
+    final $$ValueTypesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.secondaryValueTypeId,
+      referencedTable: $db.valueTypes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ValueTypesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.valueTypes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$ExerciseRecordFormulasTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ExerciseRecordFormulasTable,
+          ExerciseRecordFormula,
+          $$ExerciseRecordFormulasTableFilterComposer,
+          $$ExerciseRecordFormulasTableOrderingComposer,
+          $$ExerciseRecordFormulasTableAnnotationComposer,
+          $$ExerciseRecordFormulasTableCreateCompanionBuilder,
+          $$ExerciseRecordFormulasTableUpdateCompanionBuilder,
+          (ExerciseRecordFormula, $$ExerciseRecordFormulasTableReferences),
+          ExerciseRecordFormula,
+          PrefetchHooks Function({
+            bool exerciseId,
+            bool primaryValueTypeId,
+            bool secondaryValueTypeId,
+          })
+        > {
+  $$ExerciseRecordFormulasTableTableManager(
+    _$AppDatabase db,
+    $ExerciseRecordFormulasTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ExerciseRecordFormulasTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$ExerciseRecordFormulasTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$ExerciseRecordFormulasTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> exerciseId = const Value.absent(),
+                Value<String> formulaType = const Value.absent(),
+                Value<int> primaryValueTypeId = const Value.absent(),
+                Value<int?> secondaryValueTypeId = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => ExerciseRecordFormulasCompanion(
+                id: id,
+                exerciseId: exerciseId,
+                formulaType: formulaType,
+                primaryValueTypeId: primaryValueTypeId,
+                secondaryValueTypeId: secondaryValueTypeId,
+                createdAt: createdAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int exerciseId,
+                required String formulaType,
+                required int primaryValueTypeId,
+                Value<int?> secondaryValueTypeId = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => ExerciseRecordFormulasCompanion.insert(
+                id: id,
+                exerciseId: exerciseId,
+                formulaType: formulaType,
+                primaryValueTypeId: primaryValueTypeId,
+                secondaryValueTypeId: secondaryValueTypeId,
+                createdAt: createdAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$ExerciseRecordFormulasTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({
+                exerciseId = false,
+                primaryValueTypeId = false,
+                secondaryValueTypeId = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (exerciseId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.exerciseId,
+                                    referencedTable:
+                                        $$ExerciseRecordFormulasTableReferences
+                                            ._exerciseIdTable(db),
+                                    referencedColumn:
+                                        $$ExerciseRecordFormulasTableReferences
+                                            ._exerciseIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+                        if (primaryValueTypeId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.primaryValueTypeId,
+                                    referencedTable:
+                                        $$ExerciseRecordFormulasTableReferences
+                                            ._primaryValueTypeIdTable(db),
+                                    referencedColumn:
+                                        $$ExerciseRecordFormulasTableReferences
+                                            ._primaryValueTypeIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+                        if (secondaryValueTypeId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.secondaryValueTypeId,
+                                    referencedTable:
+                                        $$ExerciseRecordFormulasTableReferences
+                                            ._secondaryValueTypeIdTable(db),
+                                    referencedColumn:
+                                        $$ExerciseRecordFormulasTableReferences
+                                            ._secondaryValueTypeIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$ExerciseRecordFormulasTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ExerciseRecordFormulasTable,
+      ExerciseRecordFormula,
+      $$ExerciseRecordFormulasTableFilterComposer,
+      $$ExerciseRecordFormulasTableOrderingComposer,
+      $$ExerciseRecordFormulasTableAnnotationComposer,
+      $$ExerciseRecordFormulasTableCreateCompanionBuilder,
+      $$ExerciseRecordFormulasTableUpdateCompanionBuilder,
+      (ExerciseRecordFormula, $$ExerciseRecordFormulasTableReferences),
+      ExerciseRecordFormula,
+      PrefetchHooks Function({
+        bool exerciseId,
+        bool primaryValueTypeId,
+        bool secondaryValueTypeId,
+      })
+    >;
+typedef $$PersonalRecordsTableCreateCompanionBuilder =
+    PersonalRecordsCompanion Function({
+      required int userId,
+      required int exerciseId,
+      required double recordValue,
+      required String displayText,
+      required DateTime achievedAt,
+      required int setId,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+typedef $$PersonalRecordsTableUpdateCompanionBuilder =
+    PersonalRecordsCompanion Function({
+      Value<int> userId,
+      Value<int> exerciseId,
+      Value<double> recordValue,
+      Value<String> displayText,
+      Value<DateTime> achievedAt,
+      Value<int> setId,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+final class $$PersonalRecordsTableReferences
+    extends
+        BaseReferences<_$AppDatabase, $PersonalRecordsTable, PersonalRecord> {
+  $$PersonalRecordsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $UsersTable _userIdTable(_$AppDatabase db) => db.users.createAlias(
+    $_aliasNameGenerator(db.personalRecords.userId, db.users.id),
+  );
+
+  $$UsersTableProcessedTableManager get userId {
+    final $_column = $_itemColumn<int>('user_id')!;
+
+    final manager = $$UsersTableTableManager(
+      $_db,
+      $_db.users,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_userIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $ExercisesTable _exerciseIdTable(_$AppDatabase db) =>
+      db.exercises.createAlias(
+        $_aliasNameGenerator(db.personalRecords.exerciseId, db.exercises.id),
+      );
+
+  $$ExercisesTableProcessedTableManager get exerciseId {
+    final $_column = $_itemColumn<int>('exercise_id')!;
+
+    final manager = $$ExercisesTableTableManager(
+      $_db,
+      $_db.exercises,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_exerciseIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $SetsTable _setIdTable(_$AppDatabase db) => db.sets.createAlias(
+    $_aliasNameGenerator(db.personalRecords.setId, db.sets.id),
+  );
+
+  $$SetsTableProcessedTableManager get setId {
+    final $_column = $_itemColumn<int>('set_id')!;
+
+    final manager = $$SetsTableTableManager(
+      $_db,
+      $_db.sets,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_setIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$PersonalRecordsTableFilterComposer
+    extends Composer<_$AppDatabase, $PersonalRecordsTable> {
+  $$PersonalRecordsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<double> get recordValue => $composableBuilder(
+    column: $table.recordValue,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get displayText => $composableBuilder(
+    column: $table.displayText,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get achievedAt => $composableBuilder(
+    column: $table.achievedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$UsersTableFilterComposer get userId {
+    final $$UsersTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableFilterComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$ExercisesTableFilterComposer get exerciseId {
+    final $$ExercisesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.exerciseId,
+      referencedTable: $db.exercises,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ExercisesTableFilterComposer(
+            $db: $db,
+            $table: $db.exercises,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$SetsTableFilterComposer get setId {
+    final $$SetsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.setId,
+      referencedTable: $db.sets,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SetsTableFilterComposer(
+            $db: $db,
+            $table: $db.sets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$PersonalRecordsTableOrderingComposer
+    extends Composer<_$AppDatabase, $PersonalRecordsTable> {
+  $$PersonalRecordsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<double> get recordValue => $composableBuilder(
+    column: $table.recordValue,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get displayText => $composableBuilder(
+    column: $table.displayText,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get achievedAt => $composableBuilder(
+    column: $table.achievedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$UsersTableOrderingComposer get userId {
+    final $$UsersTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableOrderingComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$ExercisesTableOrderingComposer get exerciseId {
+    final $$ExercisesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.exerciseId,
+      referencedTable: $db.exercises,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ExercisesTableOrderingComposer(
+            $db: $db,
+            $table: $db.exercises,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$SetsTableOrderingComposer get setId {
+    final $$SetsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.setId,
+      referencedTable: $db.sets,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SetsTableOrderingComposer(
+            $db: $db,
+            $table: $db.sets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$PersonalRecordsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PersonalRecordsTable> {
+  $$PersonalRecordsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<double> get recordValue => $composableBuilder(
+    column: $table.recordValue,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get displayText => $composableBuilder(
+    column: $table.displayText,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get achievedAt => $composableBuilder(
+    column: $table.achievedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $$UsersTableAnnotationComposer get userId {
+    final $$UsersTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableAnnotationComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$ExercisesTableAnnotationComposer get exerciseId {
+    final $$ExercisesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.exerciseId,
+      referencedTable: $db.exercises,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ExercisesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.exercises,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$SetsTableAnnotationComposer get setId {
+    final $$SetsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.setId,
+      referencedTable: $db.sets,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$SetsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.sets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$PersonalRecordsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $PersonalRecordsTable,
+          PersonalRecord,
+          $$PersonalRecordsTableFilterComposer,
+          $$PersonalRecordsTableOrderingComposer,
+          $$PersonalRecordsTableAnnotationComposer,
+          $$PersonalRecordsTableCreateCompanionBuilder,
+          $$PersonalRecordsTableUpdateCompanionBuilder,
+          (PersonalRecord, $$PersonalRecordsTableReferences),
+          PersonalRecord,
+          PrefetchHooks Function({bool userId, bool exerciseId, bool setId})
+        > {
+  $$PersonalRecordsTableTableManager(
+    _$AppDatabase db,
+    $PersonalRecordsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PersonalRecordsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PersonalRecordsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PersonalRecordsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> userId = const Value.absent(),
+                Value<int> exerciseId = const Value.absent(),
+                Value<double> recordValue = const Value.absent(),
+                Value<String> displayText = const Value.absent(),
+                Value<DateTime> achievedAt = const Value.absent(),
+                Value<int> setId = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => PersonalRecordsCompanion(
+                userId: userId,
+                exerciseId: exerciseId,
+                recordValue: recordValue,
+                displayText: displayText,
+                achievedAt: achievedAt,
+                setId: setId,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required int userId,
+                required int exerciseId,
+                required double recordValue,
+                required String displayText,
+                required DateTime achievedAt,
+                required int setId,
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => PersonalRecordsCompanion.insert(
+                userId: userId,
+                exerciseId: exerciseId,
+                recordValue: recordValue,
+                displayText: displayText,
+                achievedAt: achievedAt,
+                setId: setId,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$PersonalRecordsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({userId = false, exerciseId = false, setId = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (userId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.userId,
+                                    referencedTable:
+                                        $$PersonalRecordsTableReferences
+                                            ._userIdTable(db),
+                                    referencedColumn:
+                                        $$PersonalRecordsTableReferences
+                                            ._userIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+                        if (exerciseId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.exerciseId,
+                                    referencedTable:
+                                        $$PersonalRecordsTableReferences
+                                            ._exerciseIdTable(db),
+                                    referencedColumn:
+                                        $$PersonalRecordsTableReferences
+                                            ._exerciseIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+                        if (setId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.setId,
+                                    referencedTable:
+                                        $$PersonalRecordsTableReferences
+                                            ._setIdTable(db),
+                                    referencedColumn:
+                                        $$PersonalRecordsTableReferences
+                                            ._setIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$PersonalRecordsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $PersonalRecordsTable,
+      PersonalRecord,
+      $$PersonalRecordsTableFilterComposer,
+      $$PersonalRecordsTableOrderingComposer,
+      $$PersonalRecordsTableAnnotationComposer,
+      $$PersonalRecordsTableCreateCompanionBuilder,
+      $$PersonalRecordsTableUpdateCompanionBuilder,
+      (PersonalRecord, $$PersonalRecordsTableReferences),
+      PersonalRecord,
+      PrefetchHooks Function({bool userId, bool exerciseId, bool setId})
     >;
 typedef $$TimersTableCreateCompanionBuilder =
     TimersCompanion Function({
@@ -16886,6 +19611,13 @@ class $AppDatabaseManager {
   $$SetsTableTableManager get sets => $$SetsTableTableManager(_db, _db.sets);
   $$SetValuesTableTableManager get setValues =>
       $$SetValuesTableTableManager(_db, _db.setValues);
+  $$ExerciseRecordFormulasTableTableManager get exerciseRecordFormulas =>
+      $$ExerciseRecordFormulasTableTableManager(
+        _db,
+        _db.exerciseRecordFormulas,
+      );
+  $$PersonalRecordsTableTableManager get personalRecords =>
+      $$PersonalRecordsTableTableManager(_db, _db.personalRecords);
   $$TimersTableTableManager get timers =>
       $$TimersTableTableManager(_db, _db.timers);
   $$RoutinesTableTableManager get routines =>

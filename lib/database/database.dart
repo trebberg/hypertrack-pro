@@ -10,6 +10,7 @@ import 'tables/gym_tables.dart';
 import 'tables/exercise_tables.dart';
 import 'tables/workout_tables.dart';
 import 'tables/timers_tables.dart';
+import 'tables/records_tables.dart';
 
 // Generated file
 part 'database.g.dart';
@@ -39,6 +40,10 @@ part 'database.g.dart';
     Sets,
     SetValues,
 
+    // Records tracking system
+    ExerciseRecordFormulas,
+    PersonalRecords,
+
     // Timers and routines
     Timers,
     Routines,
@@ -50,7 +55,23 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration {
+    return MigrationStrategy(
+      onCreate: (Migrator m) async {
+        await m.createAll();
+      },
+      onUpgrade: (Migrator m, int from, int to) async {
+        if (from < 2) {
+          // Add the records tables for schema version 2
+          await m.createTable(exerciseRecordFormulas);
+          await m.createTable(personalRecords);
+        }
+      },
+    );
+  }
 
   // Smart history query - get last performance for an exercise
   Future<List<SetValue>> getLastPerformanceForExercise(
@@ -105,36 +126,47 @@ class AppDatabase extends _$AppDatabase {
         .get();
   }
 
-  // UPDATED: Get last set for an exercise (now returns WorkoutSet instead of Set)
-  Future<WorkoutSet?> getLastSetForExercise(int userId, int exerciseId) async {
-    return await (select(sets).join([
-            leftOuterJoin(
-              workoutExercises,
-              workoutExercises.id.equalsExp(sets.workoutExerciseId),
-            ),
-            leftOuterJoin(
-              workouts,
-              workouts.id.equalsExp(workoutExercises.workoutId),
-            ),
-            leftOuterJoin(
-              exercises,
-              exercises.id.equalsExp(workoutExercises.exerciseId),
-            ),
-          ])
-          ..where(
-            workouts.userId.equals(userId) & exercises.id.equals(exerciseId),
-          )
-          ..orderBy([OrderingTerm.desc(sets.completedAt)])
-          ..limit(1))
-        .map((row) => row.readTable(sets))
+  // Get current personal record for an exercise
+  Future<PersonalRecord?> getCurrentRecord(int userId, int exerciseId) async {
+    return await (select(personalRecords)..where(
+          (pr) => pr.userId.equals(userId) & pr.exerciseId.equals(exerciseId),
+        ))
         .getSingleOrNull();
+  }
+
+  // Check if a new value would be a record
+  Future<bool> isNewRecord(int userId, int exerciseId, double newValue) async {
+    final currentRecord = await getCurrentRecord(userId, exerciseId);
+    return currentRecord == null || newValue > currentRecord.recordValue;
+  }
+
+  // Calculate percentage compared to personal record
+  Future<double?> getRecordPercentage(
+    int userId,
+    int exerciseId,
+    double newValue,
+  ) async {
+    final currentRecord = await getCurrentRecord(userId, exerciseId);
+    if (currentRecord == null || currentRecord.recordValue == 0) return null;
+
+    return ((newValue - currentRecord.recordValue) /
+            currentRecord.recordValue) *
+        100;
+  }
+
+  // Get record formula for an exercise
+  Future<ExerciseRecordFormula?> getRecordFormula(int exerciseId) async {
+    return await (select(
+      exerciseRecordFormulas,
+    )..where((erf) => erf.exerciseId.equals(exerciseId))).getSingleOrNull();
   }
 }
 
+// Database connection setup
 LazyDatabase _openConnection() {
   return LazyDatabase(() async {
     final dbFolder = await getApplicationDocumentsDirectory();
-    final file = File(p.join(dbFolder.path, 'hypertrack.db'));
+    final file = File(p.join(dbFolder.path, 'hypertrack_pro.db'));
     return NativeDatabase.createInBackground(file);
   });
 }
