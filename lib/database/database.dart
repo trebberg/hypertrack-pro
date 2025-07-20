@@ -93,7 +93,7 @@ class AppDatabase extends _$AppDatabase {
   // Get all exercises available at a specific gym
   Future<List<Exercise>> getExercisesForGym(int gymId) async {
     return await (select(exercises).join([
-          leftOuterJoin(
+          innerJoin(
             exerciseGyms,
             exerciseGyms.exerciseId.equalsExp(exercises.id),
           ),
@@ -105,25 +105,36 @@ class AppDatabase extends _$AppDatabase {
         .get();
   }
 
-  // Get all value types for an exercise
-  Future<List<ValueType>> getValueTypesForExercise(int exerciseId) async {
-    return await (select(valueTypes).join([
+  // UPDATED: Get last set for an exercise (now returns WorkoutSet instead of Set)
+  Future<WorkoutSet?> getLastSetForExercise(int userId, int exerciseId) async {
+    return await (select(sets).join([
             leftOuterJoin(
-              exerciseValueTypes,
-              exerciseValueTypes.valueTypeId.equalsExp(valueTypes.id),
+              workoutExercises,
+              workoutExercises.id.equalsExp(sets.workoutExerciseId),
+            ),
+            leftOuterJoin(
+              workouts,
+              workouts.id.equalsExp(workoutExercises.workoutId),
+            ),
+            leftOuterJoin(
+              exercises,
+              exercises.id.equalsExp(workoutExercises.exerciseId),
             ),
           ])
-          ..where(exerciseValueTypes.exerciseId.equals(exerciseId))
-          ..orderBy([OrderingTerm.asc(exerciseValueTypes.sortOrder)]))
-        .map((row) => row.readTable(valueTypes))
-        .get();
+          ..where(
+            workouts.userId.equals(userId) & exercises.id.equals(exerciseId),
+          )
+          ..orderBy([OrderingTerm.desc(sets.completedAt)])
+          ..limit(1))
+        .map((row) => row.readTable(sets))
+        .getSingleOrNull();
   }
 }
 
 LazyDatabase _openConnection() {
   return LazyDatabase(() async {
     final dbFolder = await getApplicationDocumentsDirectory();
-    final file = File(p.join(dbFolder.path, 'hypertrack_pro.db'));
+    final file = File(p.join(dbFolder.path, 'hypertrack.db'));
     return NativeDatabase.createInBackground(file);
   });
 }

@@ -4556,7 +4556,7 @@ class WorkoutExercisesCompanion extends UpdateCompanion<WorkoutExercise> {
   }
 }
 
-class $SetsTable extends Sets with TableInfo<$SetsTable, Set> {
+class $SetsTable extends Sets with TableInfo<$SetsTable, WorkoutSet> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -4659,7 +4659,7 @@ class $SetsTable extends Sets with TableInfo<$SetsTable, Set> {
   static const String $name = 'sets';
   @override
   VerificationContext validateIntegrity(
-    Insertable<Set> instance, {
+    Insertable<WorkoutSet> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -4725,9 +4725,9 @@ class $SetsTable extends Sets with TableInfo<$SetsTable, Set> {
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  Set map(Map<String, dynamic> data, {String? tablePrefix}) {
+  WorkoutSet map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return Set(
+    return WorkoutSet(
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}id'],
@@ -4765,7 +4765,7 @@ class $SetsTable extends Sets with TableInfo<$SetsTable, Set> {
   }
 }
 
-class Set extends DataClass implements Insertable<Set> {
+class WorkoutSet extends DataClass implements Insertable<WorkoutSet> {
   final int id;
   final int workoutExerciseId;
   final int setNumber;
@@ -4773,7 +4773,7 @@ class Set extends DataClass implements Insertable<Set> {
   final int? repsInReserve;
   final String? notes;
   final DateTime completedAt;
-  const Set({
+  const WorkoutSet({
     required this.id,
     required this.workoutExerciseId,
     required this.setNumber,
@@ -4819,12 +4819,12 @@ class Set extends DataClass implements Insertable<Set> {
     );
   }
 
-  factory Set.fromJson(
+  factory WorkoutSet.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return Set(
+    return WorkoutSet(
       id: serializer.fromJson<int>(json['id']),
       workoutExerciseId: serializer.fromJson<int>(json['workoutExerciseId']),
       setNumber: serializer.fromJson<int>(json['setNumber']),
@@ -4848,7 +4848,7 @@ class Set extends DataClass implements Insertable<Set> {
     };
   }
 
-  Set copyWith({
+  WorkoutSet copyWith({
     int? id,
     int? workoutExerciseId,
     int? setNumber,
@@ -4856,7 +4856,7 @@ class Set extends DataClass implements Insertable<Set> {
     Value<int?> repsInReserve = const Value.absent(),
     Value<String?> notes = const Value.absent(),
     DateTime? completedAt,
-  }) => Set(
+  }) => WorkoutSet(
     id: id ?? this.id,
     workoutExerciseId: workoutExerciseId ?? this.workoutExerciseId,
     setNumber: setNumber ?? this.setNumber,
@@ -4869,8 +4869,8 @@ class Set extends DataClass implements Insertable<Set> {
     notes: notes.present ? notes.value : this.notes,
     completedAt: completedAt ?? this.completedAt,
   );
-  Set copyWithCompanion(SetsCompanion data) {
-    return Set(
+  WorkoutSet copyWithCompanion(SetsCompanion data) {
+    return WorkoutSet(
       id: data.id.present ? data.id.value : this.id,
       workoutExerciseId: data.workoutExerciseId.present
           ? data.workoutExerciseId.value
@@ -4891,7 +4891,7 @@ class Set extends DataClass implements Insertable<Set> {
 
   @override
   String toString() {
-    return (StringBuffer('Set(')
+    return (StringBuffer('WorkoutSet(')
           ..write('id: $id, ')
           ..write('workoutExerciseId: $workoutExerciseId, ')
           ..write('setNumber: $setNumber, ')
@@ -4916,7 +4916,7 @@ class Set extends DataClass implements Insertable<Set> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is Set &&
+      (other is WorkoutSet &&
           other.id == this.id &&
           other.workoutExerciseId == this.workoutExerciseId &&
           other.setNumber == this.setNumber &&
@@ -4926,7 +4926,7 @@ class Set extends DataClass implements Insertable<Set> {
           other.completedAt == this.completedAt);
 }
 
-class SetsCompanion extends UpdateCompanion<Set> {
+class SetsCompanion extends UpdateCompanion<WorkoutSet> {
   final Value<int> id;
   final Value<int> workoutExerciseId;
   final Value<int> setNumber;
@@ -4953,7 +4953,7 @@ class SetsCompanion extends UpdateCompanion<Set> {
     this.completedAt = const Value.absent(),
   }) : workoutExerciseId = Value(workoutExerciseId),
        setNumber = Value(setNumber);
-  static Insertable<Set> custom({
+  static Insertable<WorkoutSet> custom({
     Expression<int>? id,
     Expression<int>? workoutExerciseId,
     Expression<int>? setNumber,
@@ -13652,7 +13652,7 @@ final class $$WorkoutExercisesTableReferences
     );
   }
 
-  static MultiTypedResultKey<$SetsTable, List<Set>> _setsRefsTable(
+  static MultiTypedResultKey<$SetsTable, List<WorkoutSet>> _setsRefsTable(
     _$AppDatabase db,
   ) => MultiTypedResultKey.fromTable(
     db.sets,
@@ -14060,7 +14060,7 @@ class $$WorkoutExercisesTableTableManager
                         await $_getPrefetchedData<
                           WorkoutExercise,
                           $WorkoutExercisesTable,
-                          Set
+                          WorkoutSet
                         >(
                           currentTable: table,
                           referencedTable: $$WorkoutExercisesTableReferences
@@ -14121,7 +14121,7 @@ typedef $$SetsTableUpdateCompanionBuilder =
     });
 
 final class $$SetsTableReferences
-    extends BaseReferences<_$AppDatabase, $SetsTable, Set> {
+    extends BaseReferences<_$AppDatabase, $SetsTable, WorkoutSet> {
   $$SetsTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
   static $WorkoutExercisesTable _workoutExerciseIdTable(_$AppDatabase db) =>
@@ -14398,14 +14398,14 @@ class $$SetsTableTableManager
         RootTableManager<
           _$AppDatabase,
           $SetsTable,
-          Set,
+          WorkoutSet,
           $$SetsTableFilterComposer,
           $$SetsTableOrderingComposer,
           $$SetsTableAnnotationComposer,
           $$SetsTableCreateCompanionBuilder,
           $$SetsTableUpdateCompanionBuilder,
-          (Set, $$SetsTableReferences),
-          Set,
+          (WorkoutSet, $$SetsTableReferences),
+          WorkoutSet,
           PrefetchHooks Function({bool workoutExerciseId, bool setValuesRefs})
         > {
   $$SetsTableTableManager(_$AppDatabase db, $SetsTable table)
@@ -14501,7 +14501,11 @@ class $$SetsTableTableManager
                   getPrefetchedDataCallback: (items) async {
                     return [
                       if (setValuesRefs)
-                        await $_getPrefetchedData<Set, $SetsTable, SetValue>(
+                        await $_getPrefetchedData<
+                          WorkoutSet,
+                          $SetsTable,
+                          SetValue
+                        >(
                           currentTable: table,
                           referencedTable: $$SetsTableReferences
                               ._setValuesRefsTable(db),
@@ -14528,14 +14532,14 @@ typedef $$SetsTableProcessedTableManager =
     ProcessedTableManager<
       _$AppDatabase,
       $SetsTable,
-      Set,
+      WorkoutSet,
       $$SetsTableFilterComposer,
       $$SetsTableOrderingComposer,
       $$SetsTableAnnotationComposer,
       $$SetsTableCreateCompanionBuilder,
       $$SetsTableUpdateCompanionBuilder,
-      (Set, $$SetsTableReferences),
-      Set,
+      (WorkoutSet, $$SetsTableReferences),
+      WorkoutSet,
       PrefetchHooks Function({bool workoutExerciseId, bool setValuesRefs})
     >;
 typedef $$SetValuesTableCreateCompanionBuilder =

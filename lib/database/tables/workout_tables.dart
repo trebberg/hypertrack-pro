@@ -27,8 +27,8 @@ class WorkoutExercises extends Table {
   TextColumn get notes => text().nullable()();
 }
 
-// Individual sets within workout exercises
-@DataClassName('Set')
+// Individual sets within workout exercises - FIXED NAME CONFLICT
+@DataClassName('WorkoutSet') // CHANGED FROM 'Set' TO 'WorkoutSet'
 class Sets extends Table {
   IntColumn get id => integer().autoIncrement()();
   IntColumn get workoutExerciseId =>
