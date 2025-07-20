@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'database.dart';
+import 'package:drift/drift.dart' as drift; // Alias to avoid Column conflict
+import 'database/database.dart'; // Correct path to database folder
 
 void main() {
   runApp(const HyperTrackApp());
@@ -26,33 +27,54 @@ class WorkoutScreen extends StatefulWidget {
 }
 
 class _WorkoutScreenState extends State<WorkoutScreen> {
-  final HyperTrackDatabase _database = HyperTrackDatabase();
+  final AppDatabase _database =
+      AppDatabase(); // Correct class name from database.dart
   String _lastPerformance = "No previous data";
   bool _isLoading = false;
 
-  Future<void> _testSmartHistory() async {
+  Future<void> _testDatabase() async {
     setState(() {
       _isLoading = true;
     });
 
     try {
-      // Add a test workout
-      await _database.addWorkout("Bench Press", 80.0, 8, "Good form");
+      // Create a test user first
+      final userId = await _database
+          .into(_database.users)
+          .insert(UsersCompanion.insert(name: "Test User"));
 
-      // Get last performance
-      final last = await _database.getLastPerformance("Bench Press");
+      // Add a test workout
+      final workoutId = await _database
+          .into(_database.workouts)
+          .insert(
+            WorkoutsCompanion.insert(
+              userId: userId,
+              exerciseName: "Bench Press",
+              weight: const drift.Value(80.0),
+              reps: const drift.Value(8),
+              notes: const drift.Value("Good form"),
+            ),
+          );
+
+      // Get last workout using the method from database.dart
+      final lastWorkout = await _database.getLastWorkout(userId);
 
       setState(() {
-        _lastPerformance = last != null
-            ? "Last time: ${last.weight}kg × ${last.reps} reps"
+        _lastPerformance = lastWorkout != null
+            ? "Last time: ${lastWorkout.weight}kg × ${lastWorkout.reps} reps"
             : "No previous performance";
         _isLoading = false;
       });
+
+      print(
+        "✅ Database test successful! User ID: $userId, Workout ID: $workoutId",
+      );
     } catch (e) {
       setState(() {
         _lastPerformance = "Error: $e";
         _isLoading = false;
       });
+      print("❌ Database test failed: $e");
     }
   }
 
@@ -67,7 +89,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
             const Icon(Icons.fitness_center, size: 64, color: Colors.blue),
             const SizedBox(height: 20),
             const Text(
-              'Smart History Demo',
+              'Phase 1: Smart History Demo',
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 40),
@@ -88,9 +110,9 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
             _isLoading
                 ? const CircularProgressIndicator()
                 : ElevatedButton.icon(
-                    onPressed: _testSmartHistory,
+                    onPressed: _testDatabase,
                     icon: const Icon(Icons.play_arrow),
-                    label: const Text('Test Smart History'),
+                    label: const Text('Test Database'),
                   ),
           ],
         ),
