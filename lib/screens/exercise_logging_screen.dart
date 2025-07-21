@@ -1,19 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:drift/drift.dart' as drift;
 import '../database/database.dart';
 
 class ExerciseLoggingScreen extends StatefulWidget {
-  final int exerciseId;
-  final String exerciseName;
   final int userId;
   final int workoutId;
+  final int exerciseId;
+  final String exerciseName;
 
   const ExerciseLoggingScreen({
     super.key,
-    required this.exerciseId,
-    required this.exerciseName,
     required this.userId,
     required this.workoutId,
+    required this.exerciseId,
+    required this.exerciseName,
   });
 
   @override
@@ -21,193 +20,243 @@ class ExerciseLoggingScreen extends StatefulWidget {
 }
 
 class _ExerciseLoggingScreenState extends State<ExerciseLoggingScreen> {
-  final AppDatabase _database = AppDatabase();
+  late AppDatabase _database;
   final TextEditingController _weightController = TextEditingController();
   final TextEditingController _repsController = TextEditingController();
+  final TextEditingController _rirController =
+      TextEditingController(); // NEW: RIR controller
 
   List<Map<String, dynamic>> _completedSets = [];
   String _lastPerformance = "Loading...";
-  bool _isLoading = false;
   int _currentSetNumber = 1;
-  int _restTimerSeconds = 0;
+  int? _currentWorkoutId;
+  bool _isLoading = true;
+
+  // Timer variables
   bool _timerRunning = false;
+  int _restTimerSeconds = 0;
+  static const int _defaultRestTimeSeconds = 180; // 3 minutes
 
   @override
   void initState() {
     super.initState();
-    _loadExerciseData();
+    _database = AppDatabase();
+    _initializeData();
   }
 
   @override
   void dispose() {
     _weightController.dispose();
     _repsController.dispose();
+    _rirController.dispose(); // NEW: Dispose RIR controller
     _database.close();
     super.dispose();
   }
 
-  Future<void> _loadExerciseData() async {
-    setState(() => _isLoading = true);
-
+  Future<void> _initializeData() async {
     try {
+      _currentWorkoutId = widget.workoutId;
+
       await _loadLastPerformance();
       await _loadCompletedSets();
-      _prepopulateInputs();
+
+      setState(() {
+        _isLoading = false;
+      });
     } catch (e) {
-      _showError("Failed to load exercise data: $e");
-    } finally {
-      setState(() => _isLoading = false);
+      print("Error initializing data: $e");
+      setState(() {
+        _isLoading = false;
+        _lastPerformance = "Error loading data";
+      });
     }
   }
 
   Future<void> _loadLastPerformance() async {
-    final lastPerformance = await _database.getLastPerformanceForExercise(
-      widget.userId,
-      widget.exerciseId,
-    );
+    try {
+      final lastPerformance = await _database.getLastPerformanceForExercise(
+        widget.userId,
+        widget.exerciseId,
+      );
 
-    if (lastPerformance.isNotEmpty) {
-      // Find weight and reps from the flexible value system
-      double? weight;
-      int? reps;
+      if (lastPerformance != null && lastPerformance.isNotEmpty) {
+        double? weight;
+        int? reps;
 
-      for (final value in lastPerformance) {
-        // We need to get the value type name - this is a simplified approach
-        if (value.numericValue != null) {
-          if (weight == null) {
-            weight = value.numericValue!;
-          } else {
-            reps = value.numericValue!.toInt();
-            break;
+        for (final value in lastPerformance) {
+          if (value.numericValue != null) {
+            if (weight == null) {
+              weight = value.numericValue!;
+            } else {
+              reps = value.numericValue!.toInt();
+              break;
+            }
           }
         }
-      }
 
-      if (weight != null && reps != null) {
-        setState(() {
-          _lastPerformance = "Last time: ${weight}kg × $reps reps";
-        });
+        if (weight != null && reps != null) {
+          setState(() {
+            _lastPerformance = "Last time: ${weight}kg × $reps reps";
+            _weightController.text = weight.toString();
+            _repsController.text = reps.toString();
+            // Don't auto-populate RIR as it's session-specific
+          });
+        } else {
+          setState(() {
+            _lastPerformance = "No previous performance data";
+          });
+        }
       } else {
-        setState(() => _lastPerformance = "No previous data");
+        setState(() {
+          _lastPerformance = "No previous performance";
+        });
       }
-    } else {
-      setState(() => _lastPerformance = "No previous data");
+    } catch (e) {
+      print("Error loading last performance: $e");
+      setState(() {
+        _lastPerformance = "Error loading last performance";
+      });
     }
   }
 
   Future<void> _loadCompletedSets() async {
-    final sets = await _database.getAllSetsForExerciseRaw(
-      widget.userId,
-      widget.exerciseId,
-      widget.workoutId,
-    );
+    if (_currentWorkoutId == null) return;
 
-    setState(() {
-      _completedSets = sets;
-      _currentSetNumber = _getCurrentSessionSets().length + 1;
-    });
-  }
-
-  List<Map<String, dynamic>> _getCurrentSessionSets() {
-    return _completedSets
-        .where((set) => set['isCurrentSession'] == true)
-        .toList();
-  }
-
-  void _prepopulateInputs() {
-    if (_completedSets.isNotEmpty) {
-      final lastSet = _completedSets.first;
-      _weightController.text = lastSet['weight'].toString();
-      _repsController.text = lastSet['reps'].toString();
-    } else if (_lastPerformance.contains("kg")) {
-      final regex = RegExp(r'(\d+\.?\d*)kg × (\d+) reps');
-      final match = regex.firstMatch(_lastPerformance);
-      if (match != null) {
-        _weightController.text = match.group(1)!;
-        _repsController.text = match.group(2)!;
-      }
+    try {
+      final sets = await _database.getAllSetsForExerciseRaw(
+        widget.userId,
+        widget.exerciseId,
+        _currentWorkoutId!,
+      );
+      setState(() {
+        _completedSets = sets;
+        if (sets.isNotEmpty) {
+          _currentSetNumber =
+              sets.where((set) => set['isCurrentSession'] == true).length + 1;
+        }
+      });
+    } catch (e) {
+      print("Error loading completed sets: $e");
     }
   }
 
   Future<void> _completeSet() async {
-    if (_weightController.text.isEmpty || _repsController.text.isEmpty) {
-      _showError("Please enter weight and reps");
-      return;
-    }
-
     final weight = double.tryParse(_weightController.text);
     final reps = int.tryParse(_repsController.text);
+    final rir = int.tryParse(_rirController.text); // NEW: Get RIR value
 
     if (weight == null || reps == null) {
-      _showError("Invalid weight or reps values");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please enter valid weight and reps")),
+      );
       return;
     }
-
-    setState(() => _isLoading = true);
 
     try {
       await _database.logNewSet(
-        workoutId: widget.workoutId,
+        workoutId: _currentWorkoutId!,
         exerciseId: widget.exerciseId,
         setNumber: _currentSetNumber,
         weight: weight,
         reps: reps,
-        repsInReserve: 2,
+        repsInReserve: rir, // NEW: Include RIR in database call
       );
 
-      // Check for personal record (simple calculation)
-      final currentValue = weight * reps;
-      final isNewRecord = await _database.isNewRecord(
-        widget.userId,
-        widget.exerciseId,
-        currentValue,
-      );
+      setState(() {
+        _currentSetNumber++;
+        _weightController.clear();
+        _repsController.clear();
+        _rirController.clear(); // NEW: Clear RIR field
+      });
 
-      if (isNewRecord) {
-        _showSuccess("🏆 New Personal Record!");
-      }
-
-      _startRestTimer();
       await _loadCompletedSets();
-      _currentSetNumber++;
+      _startRestTimer();
+
+      if (mounted) {
+        final rirText = rir != null ? " (RIR: $rir)" : "";
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              "Set ${_currentSetNumber - 1} completed: ${weight}kg × $reps reps$rirText",
+            ), // FIXED: String interpolation
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
     } catch (e) {
-      _showError("Failed to log set: $e");
-    } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Error logging set: $e")));
+      }
     }
   }
 
   void _startRestTimer() {
     setState(() {
-      _restTimerSeconds = 180; // 3 minutes
+      _restTimerSeconds = _defaultRestTimeSeconds;
       _timerRunning = true;
     });
+
     _runTimer();
   }
 
   void _runTimer() {
-    if (_timerRunning && _restTimerSeconds > 0) {
-      Future.delayed(const Duration(seconds: 1), () {
-        if (mounted && _timerRunning) {
-          setState(() => _restTimerSeconds--);
-          _runTimer();
-        }
-      });
-    } else if (_restTimerSeconds <= 0) {
-      setState(() => _timerRunning = false);
-      _showSuccess("Rest time complete!");
-    }
+    Future.delayed(const Duration(seconds: 1), () {
+      if (_timerRunning && _restTimerSeconds > 0) {
+        setState(() {
+          _restTimerSeconds--;
+        });
+        _runTimer();
+      } else {
+        setState(() {
+          _timerRunning = false;
+        });
+      }
+    });
   }
 
   void _adjustTimer(int seconds) {
     setState(() {
-      _restTimerSeconds += seconds;
-      if (_restTimerSeconds < 0) _restTimerSeconds = 0;
+      _restTimerSeconds = (_restTimerSeconds + seconds).clamp(0, 999);
     });
   }
 
   void _stopTimer() {
-    setState(() => _timerRunning = false);
+    setState(() {
+      _timerRunning = false;
+      _restTimerSeconds = 0;
+    });
+  }
+
+  String _formatTimer(int seconds) {
+    final minutes = seconds ~/ 60;
+    final remainingSeconds = seconds % 60;
+    return "${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')}";
+  }
+
+  String _formatDate(dynamic dateValue) {
+    try {
+      DateTime date;
+      if (dateValue is DateTime) {
+        date = dateValue;
+      } else if (dateValue is String) {
+        date = DateTime.parse(dateValue);
+      } else {
+        return "Unknown";
+      }
+
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final yesterday = today.subtract(const Duration(days: 1));
+      final targetDate = DateTime(date.year, date.month, date.day);
+
+      if (targetDate == today) return "Today";
+      if (targetDate == yesterday) return "Yesterday";
+      return "${date.day}/${date.month}";
+    } catch (e) {
+      return "Unknown";
+    }
   }
 
   Future<void> _editSet(Map<String, dynamic> set) async {
@@ -218,91 +267,44 @@ class _ExerciseLoggingScreenState extends State<ExerciseLoggingScreen> {
 
     if (result != null) {
       if (result['action'] == 'delete') {
-        await _deleteSet(set);
+        try {
+          await _database.deleteExistingSet(set['setId']);
+          await _loadCompletedSets();
+          if (mounted) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(const SnackBar(content: Text("Set deleted")));
+          }
+        } catch (e) {
+          if (mounted) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text("Error deleting set: $e")));
+          }
+        }
       } else if (result['action'] == 'save') {
-        await _updateSet(set, result);
-      }
-      await _loadExerciseData();
-    }
-  }
-
-  Future<void> _updateSet(
-    Map<String, dynamic> set,
-    Map<String, dynamic> updates,
-  ) async {
-    try {
-      await _database.updateExistingSet(
-        setId: set['setId'],
-        weight: updates['weight'],
-        reps: updates['reps'],
-        repsInReserve: updates['rir'],
-      );
-      _showSuccess("Set updated successfully");
-    } catch (e) {
-      _showError("Failed to update set: $e");
-    }
-  }
-
-  Future<void> _deleteSet(Map<String, dynamic> set) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Delete Set"),
-        content: Text(
-          "Delete Set ${set['setNumber']} (${set['weight']}kg × ${set['reps']} reps)?\n\n"
-          "${set['isPersonalRecord'] ? '⚠️ This set is a personal record!\n\n' : ''}"
-          "This action cannot be undone.",
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text("Cancel"),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text("Delete"),
-          ),
-        ],
-      ),
-    );
-
-    if (confirm == true) {
-      try {
-        await _database.deleteExistingSet(set['setId']);
-        _showSuccess("Set deleted successfully");
-      } catch (e) {
-        _showError("Failed to delete set: $e");
+        try {
+          await _database.updateExistingSet(
+            setId: set['setId'],
+            weight: result['weight'],
+            reps: result['reps'],
+            repsInReserve: result['rir'],
+          );
+          await _loadCompletedSets();
+          if (mounted) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(const SnackBar(content: Text("Set updated")));
+          }
+        } catch (e) {
+          if (mounted) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text("Error updating set: $e")));
+          }
+        }
       }
     }
-  }
-
-  void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
-    );
-  }
-
-  void _showSuccess(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.green),
-    );
-  }
-
-  String _formatTimer(int seconds) {
-    final minutes = seconds ~/ 60;
-    final remainingSeconds = seconds % 60;
-    return "${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')}";
-  }
-
-  String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final difference = now.difference(date).inDays;
-
-    if (difference == 0) return "Today";
-    if (difference == 1) return "Yesterday";
-    if (difference < 7) return "$difference days ago";
-    return "${date.day}/${date.month}";
   }
 
   @override
@@ -310,8 +312,7 @@ class _ExerciseLoggingScreenState extends State<ExerciseLoggingScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.exerciseName),
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.blue.shade100,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -389,9 +390,13 @@ class _ExerciseLoggingScreenState extends State<ExerciseLoggingScreen> {
                         ),
                       ),
                       const SizedBox(height: 16),
+
+                      // NEW: Updated Row with 3 fields (Weight, Reps, RIR)
                       Row(
                         children: [
+                          // Weight Field
                           Expanded(
+                            flex: 2,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -418,8 +423,11 @@ class _ExerciseLoggingScreenState extends State<ExerciseLoggingScreen> {
                               ],
                             ),
                           ),
-                          const SizedBox(width: 16),
+                          const SizedBox(width: 12),
+
+                          // Reps Field
                           Expanded(
+                            flex: 2,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -437,6 +445,39 @@ class _ExerciseLoggingScreenState extends State<ExerciseLoggingScreen> {
                                     contentPadding: EdgeInsets.symmetric(
                                       horizontal: 16,
                                       vertical: 16,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+
+                          // NEW: RIR Field
+                          Expanded(
+                            flex: 1,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  "RIR",
+                                  style: TextStyle(fontWeight: FontWeight.w500),
+                                ),
+                                const SizedBox(height: 8),
+                                TextField(
+                                  controller: _rirController,
+                                  keyboardType: TextInputType.number,
+                                  style: const TextStyle(fontSize: 18),
+                                  decoration: const InputDecoration(
+                                    border: OutlineInputBorder(),
+                                    contentPadding: EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 16,
+                                    ),
+                                    hintText: "0-10",
+                                    hintStyle: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.grey,
                                     ),
                                   ),
                                 ),
@@ -481,7 +522,9 @@ class _ExerciseLoggingScreenState extends State<ExerciseLoggingScreen> {
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
-                            color: _timerRunning ? Colors.orange : Colors.grey,
+                            color: _timerRunning
+                                ? Colors.orange.shade700
+                                : Colors.grey.shade600,
                           ),
                         ),
                         const SizedBox(height: 12),
@@ -504,6 +547,7 @@ class _ExerciseLoggingScreenState extends State<ExerciseLoggingScreen> {
                               onPressed: _stopTimer,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.red,
+                                foregroundColor: Colors.white,
                               ),
                               child: const Text("Stop"),
                             ),
@@ -521,7 +565,7 @@ class _ExerciseLoggingScreenState extends State<ExerciseLoggingScreen> {
 class _CompletedSetTile extends StatelessWidget {
   final Map<String, dynamic> set;
   final VoidCallback onTap;
-  final String Function(DateTime) formatDate;
+  final String Function(dynamic) formatDate;
 
   const _CompletedSetTile({
     required this.set,
@@ -531,9 +575,12 @@ class _CompletedSetTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isCurrentSession = set['isCurrentSession'] as bool;
+    final isCurrentSession = set['isCurrentSession'] == true;
+    final rirText = set['repsInReserve'] != null
+        ? " (RIR: ${set['repsInReserve']})"
+        : "";
     final displayText =
-        "Set ${set['setNumber']}: ${set['weight']}kg × ${set['reps']} ✅ ${set['isPersonalRecord'] ? '🏆' : '⏱️'}";
+        "Set ${set['setNumber']}: ${set['weight']}kg × ${set['reps']} reps$rirText ${isCurrentSession ? '🏆' : '⏱️'}";
     final contextText = isCurrentSession
         ? ""
         : "📅 From: \"${set['workoutName']}\" (${formatDate(set['completedAt'])})";
