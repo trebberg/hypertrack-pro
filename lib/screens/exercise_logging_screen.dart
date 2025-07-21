@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:lucide_icons/lucide_icons.dart';
 import '../database/database.dart';
+import 'exercise_settings_screen.dart';
 
 class ExerciseLoggingScreen extends StatefulWidget {
   final int userId;
@@ -96,6 +97,37 @@ class _ExerciseLoggingScreenState extends State<ExerciseLoggingScreen> {
         _lastPerformance = "Error loading data";
         _isLoading = false;
       });
+    }
+  }
+
+  Future<void> _showExerciseSettings() async {
+    final result = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      enableDrag: true,
+      isDismissible: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => ExerciseSettingsScreen(
+        exerciseId: widget.exerciseId,
+        exerciseName: widget.exerciseName,
+      ),
+    );
+
+    // Reload exercise data if settings were changed
+    if (result == true) {
+      await _loadExerciseData();
+
+      // Show confirmation snackbar
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Exercise settings updated'),
+            backgroundColor: Colors.green.shade600,
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
     }
   }
 
@@ -235,9 +267,8 @@ class _ExerciseLoggingScreenState extends State<ExerciseLoggingScreen> {
         actions: [
           IconButton(
             icon: const Icon(LucideIcons.settings),
-            onPressed: () {
-              // Open exercise settings
-            },
+            onPressed: _showExerciseSettings,
+            tooltip: 'Exercise Settings',
           ),
         ],
       ),
