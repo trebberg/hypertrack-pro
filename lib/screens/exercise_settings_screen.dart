@@ -42,6 +42,13 @@ class _ExerciseSettingsScreenState extends State<ExerciseSettingsScreen> {
   String _defaultGraphType = 'estimated_1rm';
   String _recordCalculationMethod = '1rm_formula';
 
+  bool _myoRepsEnabled = true;
+  int _myoRestSeconds = 15;
+  int _maxMyoSets = 3;
+  int _myoTargetReps = 3;
+  int _myoRirThreshold = 1;
+  bool _myoRepsExpanded = false;
+
   // Available options
   final List<double> _weightIncrementOptions = [0.5, 1.0, 1.25, 2.5, 5.0, 10.0];
   final List<int> _repsIncrementOptions = [1, 2, 5];
