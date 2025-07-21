@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:drift/drift.dart' as drift;
+import 'package:lucide_icons/lucide_icons.dart';
 import '../database/database.dart';
 
 class ExerciseLoggingScreen extends StatefulWidget {
@@ -20,66 +22,44 @@ class ExerciseLoggingScreen extends StatefulWidget {
 }
 
 class _ExerciseLoggingScreenState extends State<ExerciseLoggingScreen> {
-  late AppDatabase _database;
+  final AppDatabase _database = AppDatabase();
+
+  // Input Controllers
   final TextEditingController _weightController = TextEditingController();
   final TextEditingController _repsController = TextEditingController();
-  final TextEditingController _rirController =
-      TextEditingController(); // NEW: RIR controller
+  int _selectedRir = 2; // Default RIR
 
-  List<Map<String, dynamic>> _completedSets = [];
-  String _lastPerformance = "Loading...";
-  int _currentSetNumber = 1;
-  int? _currentWorkoutId;
+  // State
   bool _isLoading = true;
+  String _lastPerformance = "";
+  List<Map<String, dynamic>> _plannedSets = [];
+  int _currentSetNumber = 1;
 
-  // Timer variables
+  // Timer State
   bool _timerRunning = false;
   int _restTimerSeconds = 0;
-  static const int _defaultRestTimeSeconds = 180; // 3 minutes
+
+  // Exercise Settings (would come from database)
+  double _weightIncrement = 2.5; // kg
+  int _repsIncrement = 1;
+  int _defaultRestTime = 180; // seconds
 
   @override
   void initState() {
     super.initState();
-    _database = AppDatabase();
-    _initializeData();
+    _loadExerciseData();
   }
 
-  @override
-  void dispose() {
-    _weightController.dispose();
-    _repsController.dispose();
-    _rirController.dispose(); // NEW: Dispose RIR controller
-    _database.close();
-    super.dispose();
-  }
-
-  Future<void> _initializeData() async {
+  Future<void> _loadExerciseData() async {
     try {
-      _currentWorkoutId = widget.workoutId;
-
-      await _loadLastPerformance();
-      await _loadCompletedSets();
-
-      setState(() {
-        _isLoading = false;
-      });
-    } catch (e) {
-      print("Error initializing data: $e");
-      setState(() {
-        _isLoading = false;
-        _lastPerformance = "Error loading data";
-      });
-    }
-  }
-
-  Future<void> _loadLastPerformance() async {
-    try {
+      // Load last performance for smart suggestions
       final lastPerformance = await _database.getLastPerformanceForExercise(
         widget.userId,
         widget.exerciseId,
       );
 
       if (lastPerformance != null && lastPerformance.isNotEmpty) {
+        // Extract weight and reps from SetValue objects
         double? weight;
         int? reps;
 
@@ -96,215 +76,150 @@ class _ExerciseLoggingScreenState extends State<ExerciseLoggingScreen> {
 
         if (weight != null && reps != null) {
           setState(() {
-            _lastPerformance = "Last time: ${weight}kg × $reps reps";
+            _lastPerformance = "Last: ${weight}kg × $reps reps";
+            // Pre-fill with last performance
             _weightController.text = weight.toString();
             _repsController.text = reps.toString();
-            // Don't auto-populate RIR as it's session-specific
-          });
-        } else {
-          setState(() {
-            _lastPerformance = "No previous performance data";
           });
         }
       } else {
         setState(() {
-          _lastPerformance = "No previous performance";
+          _lastPerformance = "No previous data";
         });
       }
-    } catch (e) {
-      print("Error loading last performance: $e");
+
       setState(() {
-        _lastPerformance = "Error loading last performance";
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _lastPerformance = "Error loading data";
+        _isLoading = false;
       });
     }
   }
 
-  Future<void> _loadCompletedSets() async {
-    if (_currentWorkoutId == null) return;
-
-    try {
-      final sets = await _database.getAllSetsForExerciseRaw(
-        widget.userId,
-        widget.exerciseId,
-        _currentWorkoutId!,
-      );
-      setState(() {
-        _completedSets = sets;
-        if (sets.isNotEmpty) {
-          _currentSetNumber =
-              sets.where((set) => set['isCurrentSession'] == true).length + 1;
-        }
-      });
-    } catch (e) {
-      print("Error loading completed sets: $e");
-    }
+  void _adjustWeight(double delta) {
+    final currentWeight = double.tryParse(_weightController.text) ?? 0.0;
+    final newWeight = (currentWeight + delta).clamp(0.0, 999.9);
+    _weightController.text = newWeight % 1 == 0
+        ? newWeight.toInt().toString()
+        : newWeight.toStringAsFixed(1);
   }
 
-  Future<void> _completeSet() async {
-    final weight = double.tryParse(_weightController.text);
-    final reps = int.tryParse(_repsController.text);
-    final rir = int.tryParse(_rirController.text); // NEW: Get RIR value
+  void _adjustReps(int delta) {
+    final currentReps = int.tryParse(_repsController.text) ?? 0;
+    final newReps = (currentReps + delta).clamp(0, 999);
+    _repsController.text = newReps.toString();
+  }
 
-    if (weight == null || reps == null) {
+  void _savePlannedSet() {
+    if (_weightController.text.isEmpty || _repsController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please enter valid weight and reps")),
+        const SnackBar(content: Text("Please enter weight and reps")),
       );
       return;
     }
 
-    try {
-      await _database.logNewSet(
-        workoutId: _currentWorkoutId!,
-        exerciseId: widget.exerciseId,
-        setNumber: _currentSetNumber,
-        weight: weight,
-        reps: reps,
-        repsInReserve: rir, // NEW: Include RIR in database call
-      );
+    final weight = double.tryParse(_weightController.text) ?? 0.0;
+    final reps = int.tryParse(_repsController.text) ?? 0;
 
-      setState(() {
-        _currentSetNumber++;
-        _weightController.clear();
-        _repsController.clear();
-        _rirController.clear(); // NEW: Clear RIR field
+    setState(() {
+      _plannedSets.add({
+        'setNumber': _plannedSets.length + 1,
+        'weight': weight,
+        'reps': reps,
+        'rir': _selectedRir,
+        'isCompleted': false,
+        'isNewPR': false, // Would be calculated
       });
+    });
 
-      await _loadCompletedSets();
-      _startRestTimer();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("Set added to plan"),
+        duration: Duration(seconds: 1),
+      ),
+    );
+  }
 
-      if (mounted) {
-        final rirText = rir != null ? " (RIR: $rir)" : "";
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              "Set ${_currentSetNumber - 1} completed: ${weight}kg × $reps reps$rirText",
-            ), // FIXED: String interpolation
-            duration: const Duration(seconds: 2),
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("Error logging set: $e")));
-      }
-    }
+  void _clearInputs() {
+    _weightController.clear();
+    _repsController.clear();
+    setState(() {
+      _selectedRir = 2;
+    });
+  }
+
+  Future<void> _completeSet(int setIndex) async {
+    setState(() {
+      _plannedSets[setIndex]['isCompleted'] = true;
+      _timerRunning = true;
+      _restTimerSeconds = _defaultRestTime;
+    });
+
+    // Start rest timer
+    _startRestTimer();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("Set completed! Rest timer started"),
+        duration: Duration(seconds: 2),
+      ),
+    );
   }
 
   void _startRestTimer() {
-    setState(() {
-      _restTimerSeconds = _defaultRestTimeSeconds;
-      _timerRunning = true;
-    });
+    if (_restTimerSeconds <= 0) return;
 
-    _runTimer();
-  }
-
-  void _runTimer() {
     Future.delayed(const Duration(seconds: 1), () {
-      if (_timerRunning && _restTimerSeconds > 0) {
+      if (mounted && _timerRunning) {
         setState(() {
           _restTimerSeconds--;
+          if (_restTimerSeconds <= 0) {
+            _timerRunning = false;
+          }
         });
-        _runTimer();
-      } else {
-        setState(() {
-          _timerRunning = false;
-        });
+        if (_restTimerSeconds > 0) {
+          _startRestTimer();
+        }
       }
     });
   }
 
-  void _adjustTimer(int seconds) {
+  void _emergencyMyo() {
+    // Emergency myo - quick 15 second break
     setState(() {
-      _restTimerSeconds = (_restTimerSeconds + seconds).clamp(0, 999);
+      _timerRunning = true;
+      _restTimerSeconds = 15; // Short myo break
     });
-  }
+    _startRestTimer();
 
-  void _stopTimer() {
-    setState(() {
-      _timerRunning = false;
-      _restTimerSeconds = 0;
-    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("Myo break! 15 seconds"),
+        backgroundColor: Colors.orange,
+        duration: Duration(seconds: 2),
+      ),
+    );
   }
 
   String _formatTimer(int seconds) {
     final minutes = seconds ~/ 60;
     final remainingSeconds = seconds % 60;
-    return "${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')}";
+    return '${minutes}:${remainingSeconds.toString().padLeft(2, '0')}';
   }
 
-  String _formatDate(dynamic dateValue) {
-    try {
-      DateTime date;
-      if (dateValue is DateTime) {
-        date = dateValue;
-      } else if (dateValue is String) {
-        date = DateTime.parse(dateValue);
-      } else {
-        return "Unknown";
-      }
-
-      final now = DateTime.now();
-      final today = DateTime(now.year, now.month, now.day);
-      final yesterday = today.subtract(const Duration(days: 1));
-      final targetDate = DateTime(date.year, date.month, date.day);
-
-      if (targetDate == today) return "Today";
-      if (targetDate == yesterday) return "Yesterday";
-      return "${date.day}/${date.month}";
-    } catch (e) {
-      return "Unknown";
-    }
+  Color _getTrophyColor(bool isNewPR, bool isNearPR) {
+    if (isNewPR) return Colors.green;
+    if (isNearPR) return Colors.orange;
+    return Colors.grey.shade400;
   }
 
-  Future<void> _editSet(Map<String, dynamic> set) async {
-    final result = await showDialog<Map<String, dynamic>>(
-      context: context,
-      builder: (context) => _SetEditDialog(set: set),
-    );
-
-    if (result != null) {
-      if (result['action'] == 'delete') {
-        try {
-          await _database.deleteExistingSet(set['setId']);
-          await _loadCompletedSets();
-          if (mounted) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(const SnackBar(content: Text("Set deleted")));
-          }
-        } catch (e) {
-          if (mounted) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text("Error deleting set: $e")));
-          }
-        }
-      } else if (result['action'] == 'save') {
-        try {
-          await _database.updateExistingSet(
-            setId: set['setId'],
-            weight: result['weight'],
-            reps: result['reps'],
-            repsInReserve: result['rir'],
-          );
-          await _loadCompletedSets();
-          if (mounted) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(const SnackBar(content: Text("Set updated")));
-          }
-        } catch (e) {
-          if (mounted) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text("Error updating set: $e")));
-          }
-        }
-      }
-    }
+  Color _getRirColor(int rir) {
+    if (rir < 0) return Colors.red.shade600;
+    if (rir == 0) return Colors.orange.shade600;
+    return Colors.green.shade600;
   }
 
   @override
@@ -313,326 +228,601 @@ class _ExerciseLoggingScreenState extends State<ExerciseLoggingScreen> {
       appBar: AppBar(
         title: Text(widget.exerciseName),
         backgroundColor: Colors.blue.shade100,
+        leading: IconButton(
+          icon: const Icon(LucideIcons.arrowLeft),
+          onPressed: () => Navigator.pop(context),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(LucideIcons.settings),
+            onPressed: () {
+              // Open exercise settings
+            },
+          ),
+        ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                // Exercise Header
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  color: Colors.blue.shade50,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        widget.exerciseName,
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
+      body: SafeArea(
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : Column(
+                children: [
+                  // COMPACT Exercise Header
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      border: Border(
+                        bottom: BorderSide(color: Colors.grey.shade200),
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        _lastPerformance,
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.grey.shade700,
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          LucideIcons.target,
+                          color: Colors.blue.shade600,
+                          size: 20,
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Completed Sets List
-                Expanded(
-                  flex: 2,
-                  child: _completedSets.isEmpty
-                      ? const Center(
-                          child: Text(
-                            "No previous sets",
-                            style: TextStyle(fontSize: 16, color: Colors.grey),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                widget.exerciseName,
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              if (_lastPerformance.isNotEmpty) ...[
+                                const SizedBox(height: 2),
+                                Text(
+                                  _lastPerformance,
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
-                        )
-                      : ListView.builder(
-                          padding: const EdgeInsets.all(8),
-                          itemCount: _completedSets.length,
-                          itemBuilder: (context, index) {
-                            final set = _completedSets[index];
-                            return _CompletedSetTile(
-                              set: set,
-                              onTap: () => _editSet(set),
-                              formatDate: _formatDate,
-                            );
-                          },
                         ),
-                ),
-
-                // Active Set Input
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
-                    border: Border(
-                      top: BorderSide(color: Colors.grey.shade300),
+                      ],
                     ),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "ACTIVE SET $_currentSetNumber:",
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
 
-                      // NEW: Updated Row with 3 fields (Weight, Reps, RIR)
-                      Row(
-                        children: [
-                          // Weight Field
-                          Expanded(
-                            flex: 2,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  "Weight (kg)",
-                                  style: TextStyle(fontWeight: FontWeight.w500),
-                                ),
-                                const SizedBox(height: 8),
-                                TextField(
-                                  controller: _weightController,
-                                  keyboardType:
-                                      const TextInputType.numberWithOptions(
-                                        decimal: true,
-                                      ),
-                                  style: const TextStyle(fontSize: 20),
-                                  decoration: const InputDecoration(
-                                    border: OutlineInputBorder(),
-                                    contentPadding: EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 16,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-
-                          // Reps Field
-                          Expanded(
-                            flex: 2,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  "Reps",
-                                  style: TextStyle(fontWeight: FontWeight.w500),
-                                ),
-                                const SizedBox(height: 8),
-                                TextField(
-                                  controller: _repsController,
-                                  keyboardType: TextInputType.number,
-                                  style: const TextStyle(fontSize: 20),
-                                  decoration: const InputDecoration(
-                                    border: OutlineInputBorder(),
-                                    contentPadding: EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 16,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-
-                          // NEW: RIR Field
-                          Expanded(
-                            flex: 1,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  "RIR",
-                                  style: TextStyle(fontWeight: FontWeight.w500),
-                                ),
-                                const SizedBox(height: 8),
-                                TextField(
-                                  controller: _rirController,
-                                  keyboardType: TextInputType.number,
-                                  style: const TextStyle(fontSize: 18),
-                                  decoration: const InputDecoration(
-                                    border: OutlineInputBorder(),
-                                    contentPadding: EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                      vertical: 16,
-                                    ),
-                                    hintText: "0-10",
-                                    hintStyle: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 60,
-                        child: ElevatedButton(
-                          onPressed: _completeSet,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
-                            foregroundColor: Colors.white,
-                            textStyle: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          child: const Text("✅ Complete Set"),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Timer Section
-                if (_timerRunning || _restTimerSeconds > 0)
+                  // PRIORITY: Active Set Input Zone
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(16),
-                    color: _timerRunning
-                        ? Colors.orange.shade50
-                        : Colors.grey.shade50,
+                    decoration: BoxDecoration(
+                      color: Colors.green.shade50,
+                      border: Border(
+                        bottom: BorderSide(color: Colors.grey.shade200),
+                      ),
+                    ),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          "Rest Timer: ${_formatTimer(_restTimerSeconds)}",
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: _timerRunning
-                                ? Colors.orange.shade700
-                                : Colors.grey.shade600,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            ElevatedButton(
-                              onPressed: () => _adjustTimer(30),
-                              child: const Text("+30s"),
+                            Icon(
+                              LucideIcons.zap,
+                              color: Colors.green.shade600,
+                              size: 18,
                             ),
-                            ElevatedButton(
-                              onPressed: () => _adjustTimer(60),
-                              child: const Text("+1m"),
-                            ),
-                            ElevatedButton(
-                              onPressed: () => _adjustTimer(120),
-                              child: const Text("+2m"),
-                            ),
-                            ElevatedButton(
-                              onPressed: _stopTimer,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.red,
-                                foregroundColor: Colors.white,
+                            const SizedBox(width: 8),
+                            Text(
+                              "ACTIVE SET ${_plannedSets.length + 1}",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.green.shade700,
                               ),
-                              child: const Text("Stop"),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Weight and Reps Row
+                        Row(
+                          children: [
+                            // Weight Input with +/- buttons
+                            Expanded(
+                              flex: 2,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Weight (kg)",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.grey.shade700,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      // Minus Button
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                            color: Colors.grey.shade300,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                        ),
+                                        child: IconButton(
+                                          icon: Icon(
+                                            LucideIcons.minus,
+                                            color: Colors.blue.shade600,
+                                          ),
+                                          onPressed: () =>
+                                              _adjustWeight(-_weightIncrement),
+                                          padding: const EdgeInsets.all(12),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      // Weight Input
+                                      Expanded(
+                                        child: TextField(
+                                          controller: _weightController,
+                                          keyboardType:
+                                              const TextInputType.numberWithOptions(
+                                                decimal: true,
+                                              ),
+                                          textAlign: TextAlign.center,
+                                          style: const TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                          decoration: const InputDecoration(
+                                            border: OutlineInputBorder(),
+                                            contentPadding:
+                                                EdgeInsets.symmetric(
+                                                  vertical: 16,
+                                                ),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      // Plus Button
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                            color: Colors.grey.shade300,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                        ),
+                                        child: IconButton(
+                                          icon: Icon(
+                                            LucideIcons.plus,
+                                            color: Colors.blue.shade600,
+                                          ),
+                                          onPressed: () =>
+                                              _adjustWeight(_weightIncrement),
+                                          padding: const EdgeInsets.all(12),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+
+                            // Reps Input with +/- buttons
+                            Expanded(
+                              flex: 2,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Reps",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.grey.shade700,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      // Minus Button
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                            color: Colors.grey.shade300,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                        ),
+                                        child: IconButton(
+                                          icon: Icon(
+                                            LucideIcons.minus,
+                                            color: Colors.blue.shade600,
+                                          ),
+                                          onPressed: () =>
+                                              _adjustReps(-_repsIncrement),
+                                          padding: const EdgeInsets.all(12),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      // Reps Input
+                                      Expanded(
+                                        child: TextField(
+                                          controller: _repsController,
+                                          keyboardType: TextInputType.number,
+                                          textAlign: TextAlign.center,
+                                          style: const TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                          decoration: const InputDecoration(
+                                            border: OutlineInputBorder(),
+                                            contentPadding:
+                                                EdgeInsets.symmetric(
+                                                  vertical: 16,
+                                                ),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      // Plus Button
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                            color: Colors.grey.shade300,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                        ),
+                                        child: IconButton(
+                                          icon: Icon(
+                                            LucideIcons.plus,
+                                            color: Colors.blue.shade600,
+                                          ),
+                                          onPressed: () =>
+                                              _adjustReps(_repsIncrement),
+                                          padding: const EdgeInsets.all(12),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // RIR Selector Row
+                        Row(
+                          children: [
+                            Text(
+                              "RIR:",
+                              style: TextStyle(
+                                fontWeight: FontWeight.w500,
+                                color: Colors.grey.shade700,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: List.generate(8, (index) {
+                                  final rir = index - 2; // -2 to +5
+                                  final isSelected = _selectedRir == rir;
+                                  return GestureDetector(
+                                    onTap: () =>
+                                        setState(() => _selectedRir = rir),
+                                    child: Container(
+                                      width: 35,
+                                      height: 35,
+                                      decoration: BoxDecoration(
+                                        color: isSelected
+                                            ? _getRirColor(rir)
+                                            : Colors.transparent,
+                                        border: Border.all(
+                                          color: _getRirColor(rir),
+                                          width: isSelected ? 2 : 1,
+                                        ),
+                                        borderRadius: BorderRadius.circular(18),
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          rir >= 0 ? '+$rir' : '$rir',
+                                          style: TextStyle(
+                                            color: isSelected
+                                                ? Colors.white
+                                                : _getRirColor(rir),
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                }),
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 20),
+
+                        // Action Buttons Row
+                        Row(
+                          children: [
+                            // Save Planned Set
+                            Expanded(
+                              flex: 2,
+                              child: ElevatedButton.icon(
+                                icon: const Icon(LucideIcons.save),
+                                label: const Text("SAVE SET"),
+                                onPressed: _savePlannedSet,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.green,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                  ),
+                                  textStyle: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+
+                            // Clear Inputs
+                            Expanded(
+                              flex: 1,
+                              child: ElevatedButton.icon(
+                                icon: const Icon(LucideIcons.x),
+                                label: const Text("CLEAR"),
+                                onPressed: _clearInputs,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.grey.shade500,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+
+                            // Emergency Myo
+                            Container(
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: Colors.orange.shade400,
+                                ),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: IconButton(
+                                icon: Icon(
+                                  LucideIcons.alertCircle,
+                                  color: Colors.orange.shade600,
+                                ),
+                                onPressed: _emergencyMyo,
+                                tooltip: "Emergency Myo",
+                                padding: const EdgeInsets.all(16),
+                              ),
                             ),
                           ],
                         ),
                       ],
                     ),
                   ),
-              ],
-            ),
-    );
-  }
-}
 
-class _CompletedSetTile extends StatelessWidget {
-  final Map<String, dynamic> set;
-  final VoidCallback onTap;
-  final String Function(dynamic) formatDate;
+                  // Planned Sets List (Scrollable)
+                  Expanded(
+                    child: _plannedSets.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  LucideIcons.listChecks,
+                                  size: 48,
+                                  color: Colors.grey.shade400,
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  "No planned sets yet",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  "Add sets above to create your workout plan",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey.shade500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : ListView.builder(
+                            padding: const EdgeInsets.all(16),
+                            itemCount: _plannedSets.length,
+                            itemBuilder: (context, index) {
+                              final set = _plannedSets[index];
+                              final isCompleted = set['isCompleted'] as bool;
+                              final isNewPR = set['isNewPR'] as bool;
 
-  const _CompletedSetTile({
-    required this.set,
-    required this.onTap,
-    required this.formatDate,
-  });
+                              return Container(
+                                margin: const EdgeInsets.only(bottom: 12),
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: isCompleted
+                                      ? Colors.green.shade50
+                                      : Colors.white,
+                                  border: Border.all(
+                                    color: isCompleted
+                                        ? Colors.green.shade200
+                                        : Colors.grey.shade200,
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.grey.shade100,
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Row(
+                                  children: [
+                                    // Set Number Badge
+                                    Container(
+                                      width: 32,
+                                      height: 32,
+                                      decoration: BoxDecoration(
+                                        color: isCompleted
+                                            ? Colors.green.shade600
+                                            : Colors.grey.shade400,
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          '${set['setNumber']}',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
 
-  @override
-  Widget build(BuildContext context) {
-    final isCurrentSession = set['isCurrentSession'] == true;
-    final rirText = set['repsInReserve'] != null
-        ? " (RIR: ${set['repsInReserve']})"
-        : "";
-    final displayText =
-        "Set ${set['setNumber']}: ${set['weight']}kg × ${set['reps']} reps$rirText ${isCurrentSession ? '🏆' : '⏱️'}";
-    final contextText = isCurrentSession
-        ? ""
-        : "📅 From: \"${set['workoutName']}\" (${formatDate(set['completedAt'])})";
+                                    // Set Details
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Text(
+                                                '${set['weight']}kg × ${set['reps']} reps',
+                                                style: TextStyle(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: isCompleted
+                                                      ? Colors.green.shade700
+                                                      : Colors.grey.shade800,
+                                                  decoration: isCompleted
+                                                      ? TextDecoration
+                                                            .lineThrough
+                                                      : null,
+                                                ),
+                                              ),
+                                              if (isNewPR) ...[
+                                                const SizedBox(width: 8),
+                                                Icon(
+                                                  LucideIcons.trophy,
+                                                  color: _getTrophyColor(
+                                                    true,
+                                                    false,
+                                                  ),
+                                                  size: 16,
+                                                ),
+                                              ],
+                                            ],
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            'RIR: ${set['rir'] >= 0 ? '+${set['rir']}' : '${set['rir']}'}',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              color: _getRirColor(set['rir']),
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
 
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 4),
-      child: ListTile(
-        onTap: onTap,
-        title: Text(
-          displayText,
-          style: TextStyle(
-            fontWeight: FontWeight.w500,
-            color: isCurrentSession ? Colors.black : Colors.grey.shade600,
-          ),
-        ),
-        subtitle: contextText.isNotEmpty
-            ? Text(
-                contextText,
-                style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
-              )
-            : null,
-        trailing: Icon(Icons.edit, color: Colors.grey.shade400),
+                                    // Complete Set Button
+                                    if (!isCompleted)
+                                      IconButton(
+                                        icon: Icon(
+                                          LucideIcons.checkCircle,
+                                          color: Colors.grey.shade400,
+                                        ),
+                                        onPressed: () => _completeSet(index),
+                                        tooltip: "Complete Set",
+                                      )
+                                    else
+                                      Icon(
+                                        LucideIcons.checkCircle,
+                                        color: Colors.green.shade600,
+                                      ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                  ),
+
+                  // Rest Timer (when active)
+                  if (_timerRunning || _restTimerSeconds > 0)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: _timerRunning
+                            ? Colors.orange.shade50
+                            : Colors.grey.shade50,
+                        border: Border(
+                          top: BorderSide(color: Colors.grey.shade300),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            LucideIcons.timer,
+                            color: _timerRunning
+                                ? Colors.orange.shade600
+                                : Colors.grey.shade600,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            _timerRunning
+                                ? "Rest Timer: ${_formatTimer(_restTimerSeconds)}"
+                                : "Rest complete!",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: _timerRunning
+                                  ? Colors.orange.shade600
+                                  : Colors.green.shade600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
       ),
-    );
-  }
-}
-
-class _SetEditDialog extends StatefulWidget {
-  final Map<String, dynamic> set;
-
-  const _SetEditDialog({required this.set});
-
-  @override
-  State<_SetEditDialog> createState() => _SetEditDialogState();
-}
-
-class _SetEditDialogState extends State<_SetEditDialog> {
-  late TextEditingController _weightController;
-  late TextEditingController _repsController;
-  late TextEditingController _rirController;
-
-  @override
-  void initState() {
-    super.initState();
-    _weightController = TextEditingController(
-      text: widget.set['weight'].toString(),
-    );
-    _repsController = TextEditingController(
-      text: widget.set['reps'].toString(),
-    );
-    _rirController = TextEditingController(
-      text: widget.set['repsInReserve']?.toString() ?? '',
     );
   }
 
@@ -640,91 +830,7 @@ class _SetEditDialogState extends State<_SetEditDialog> {
   void dispose() {
     _weightController.dispose();
     _repsController.dispose();
-    _rirController.dispose();
+    _database.close();
     super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final contextText = widget.set['isCurrentSession']
-        ? ""
-        : "📅 From: \"${widget.set['workoutName']}\"";
-
-    return AlertDialog(
-      title: Text("✏️ Edit Set ${widget.set['setNumber']}"),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (contextText.isNotEmpty)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(8),
-              margin: const EdgeInsets.only(bottom: 16),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                contextText,
-                style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-              ),
-            ),
-          TextField(
-            controller: _weightController,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(
-              labelText: "Weight (kg)",
-              border: OutlineInputBorder(),
-            ),
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _repsController,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              labelText: "Reps",
-              border: OutlineInputBorder(),
-            ),
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _rirController,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              labelText: "RIR (1-10, optional)",
-              border: OutlineInputBorder(),
-            ),
-          ),
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text("Cancel"),
-        ),
-        TextButton(
-          onPressed: () => Navigator.pop(context, {'action': 'delete'}),
-          style: TextButton.styleFrom(foregroundColor: Colors.red),
-          child: const Text("🗑️ Delete"),
-        ),
-        ElevatedButton(
-          onPressed: () {
-            final weight = double.tryParse(_weightController.text);
-            final reps = int.tryParse(_repsController.text);
-            final rir = int.tryParse(_rirController.text);
-
-            if (weight != null && reps != null) {
-              Navigator.pop(context, {
-                'action': 'save',
-                'weight': weight,
-                'reps': reps,
-                'rir': rir,
-              });
-            }
-          },
-          child: const Text("💾 Save"),
-        ),
-      ],
-    );
   }
 }

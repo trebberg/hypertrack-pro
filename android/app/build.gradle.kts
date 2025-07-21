@@ -8,8 +8,8 @@ plugins {
 android {
     namespace = "com.example.hypertrack_pro"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
-
+    ndkVersion = "27.0.12077973"  // <-- TO THIS
+    
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
