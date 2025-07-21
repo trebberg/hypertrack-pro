@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'rir_assessment_modal.dart';
-import 'myo_reps_decision_modal.dart';
+import '../widgets/modals/rir_assessment_modal.dart';
+import '../widgets/modals/myo_reps_decision_modal.dart';
 
 class MyoRepsDecisionModal extends StatefulWidget {
   final int currentRir;

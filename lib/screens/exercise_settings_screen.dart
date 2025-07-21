@@ -488,6 +488,241 @@ class _ExerciseSettingsScreenState extends State<ExerciseSettingsScreen> {
     );
   }
 
+  Widget _buildMyoRepsSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Enable/Disable Toggle
+        SwitchListTile(
+          title: const Text('Enable Myo-Reps'),
+          subtitle: const Text('Suggest myo-reps when RIR threshold is met'),
+          value: _myoRepsEnabled,
+          activeColor: Colors.orange.shade600,
+          onChanged: (value) {
+            setState(() {
+              _myoRepsEnabled = value;
+              _markAsChanged();
+            });
+          },
+        ),
+
+        const SizedBox(height: 8),
+
+        if (_myoRepsEnabled) ...[
+          // RIR Threshold Setting
+          Row(
+            children: [
+              const Expanded(
+                flex: 2,
+                child: Text(
+                  'RIR Threshold',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                ),
+              ),
+              Expanded(
+                flex: 1,
+                child: DropdownButtonFormField<int>(
+                  value: _myoRirThreshold,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                  ),
+                  items: [0, 1, 2].map((threshold) {
+                    return DropdownMenuItem(
+                      value: threshold,
+                      child: Text('≤ $threshold RIR'),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() {
+                        _myoRirThreshold = value;
+                        _markAsChanged();
+                      });
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+
+          // Rest Time Between Myo-Sets
+          Row(
+            children: [
+              const Expanded(
+                flex: 2,
+                child: Text(
+                  'Myo Rest Time',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                ),
+              ),
+              Expanded(
+                flex: 1,
+                child: DropdownButtonFormField<int>(
+                  value: _myoRestSeconds,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                  ),
+                  items: [10, 15, 20, 25, 30].map((seconds) {
+                    return DropdownMenuItem(
+                      value: seconds,
+                      child: Text('${seconds}s'),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() {
+                        _myoRestSeconds = value;
+                        _markAsChanged();
+                      });
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+
+          // Max Myo Sets
+          Row(
+            children: [
+              const Expanded(
+                flex: 2,
+                child: Text(
+                  'Max Myo Sets',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                ),
+              ),
+              Expanded(
+                flex: 1,
+                child: DropdownButtonFormField<int>(
+                  value: _maxMyoSets,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                  ),
+                  items: [2, 3, 4, 5].map((sets) {
+                    return DropdownMenuItem(
+                      value: sets,
+                      child: Text('$sets sets'),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() {
+                        _maxMyoSets = value;
+                        _markAsChanged();
+                      });
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+
+          // Target Reps Per Myo Set
+          Row(
+            children: [
+              const Expanded(
+                flex: 2,
+                child: Text(
+                  'Target Myo Reps',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                ),
+              ),
+              Expanded(
+                flex: 1,
+                child: DropdownButtonFormField<int>(
+                  value: _myoTargetReps,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                  ),
+                  items: [2, 3, 4, 5, 6].map((reps) {
+                    return DropdownMenuItem(
+                      value: reps,
+                      child: Text('$reps reps'),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() {
+                        _myoTargetReps = value;
+                        _markAsChanged();
+                      });
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+
+          // Explanation Text
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.orange.shade50,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.orange.shade200),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      LucideIcons.info,
+                      size: 16,
+                      color: Colors.orange.shade600,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Myo-Reps Explained',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.orange.shade700,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'When you complete a set with RIR ≤ ${_myoRirThreshold}, the app will offer myo-reps: short ${_myoRestSeconds}s rest periods followed by mini-sets to failure.',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.orange.shade800,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
   String _formatGraphType(String type) {
     switch (type) {
       case 'estimated_1rm':
@@ -616,6 +851,20 @@ class _ExerciseSettingsScreenState extends State<ExerciseSettingsScreen> {
                           previewText:
                               '${_defaultRestSeconds}s${_autoStartTimer ? ', Auto-start' : ''}',
                           child: _buildTimerSection(),
+                        ),
+
+                        // MYO-REPS SECTION - NIEUWE SECTIE HIER TOEVOEGEN
+                        _buildCollapsibleSection(
+                          title: 'Myo-Reps Settings',
+                          icon: LucideIcons.flame,
+                          isExpanded: _myoRepsExpanded,
+                          onToggle: () => setState(() {
+                            _myoRepsExpanded = !_myoRepsExpanded;
+                          }),
+                          previewText: _myoRepsEnabled
+                              ? 'Enabled - ${_myoRestSeconds}s rest, max ${_maxMyoSets} sets'
+                              : 'Disabled',
+                          child: _buildMyoRepsSection(),
                         ),
 
                         // Tracking Section

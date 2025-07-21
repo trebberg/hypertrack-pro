@@ -417,10 +417,11 @@ class _ExerciseLoggingScreenState extends State<ExerciseLoggingScreen> {
                   ),
                 ),
 
-                // PRIORITY: Active Set Input Zone
+                // PRIORITY: Active Set Input Zone - AGRESSIEF COMPACTE VERSIE
+                // PRIORITY: Active Set Input Zone - EXTRA COMPACTE VERSIE
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(12), // VERKLEIND: was 16, nu 12
                   decoration: BoxDecoration(
                     color: Colors.green.shade50,
                     border: Border(
@@ -430,7 +431,10 @@ class _ExerciseLoggingScreenState extends State<ExerciseLoggingScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // GECORRIGEERDE SET COUNTER - Icon en text samen naar rechts
                       Row(
+                        mainAxisAlignment:
+                            MainAxisAlignment.end, // ALLES naar rechts
                         children: [
                           Icon(
                             LucideIcons.plus,
@@ -448,9 +452,8 @@ class _ExerciseLoggingScreenState extends State<ExerciseLoggingScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16),
-
-                      // Weight and Reps Input
+                      const SizedBox(height: 4), // NOG KLEINER: was 6, nu 4
+                      // Weight Input - VEEL LAGERE INPUT FIELDS
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -462,7 +465,7 @@ class _ExerciseLoggingScreenState extends State<ExerciseLoggingScreen> {
                               color: Colors.grey.shade700,
                             ),
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 6), // KLEINER: was 8, nu 6
                           Row(
                             children: [
                               Container(
@@ -500,11 +503,11 @@ class _ExerciseLoggingScreenState extends State<ExerciseLoggingScreen> {
                                       border: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(8),
                                       ),
-                                      contentPadding:
-                                          const EdgeInsets.symmetric(
-                                            vertical: 16,
-                                            horizontal: 12,
-                                          ),
+                                      contentPadding: const EdgeInsets.symmetric(
+                                        vertical:
+                                            2, // ZEER LAAG: was 8, nu 2 (bijna gelijk aan buttons)
+                                        horizontal: 12,
+                                      ),
                                       hintText: "100.50",
                                       hintStyle: TextStyle(
                                         color: Colors.grey.shade400,
@@ -534,9 +537,8 @@ class _ExerciseLoggingScreenState extends State<ExerciseLoggingScreen> {
                         ],
                       ),
 
-                      const SizedBox(height: 16),
-
-                      // Reps Row (Full Width)
+                      const SizedBox(height: 8), // KLEINER: was 16→12, nu 8
+                      // Reps Input - VEEL LAGERE INPUT FIELDS
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -548,7 +550,7 @@ class _ExerciseLoggingScreenState extends State<ExerciseLoggingScreen> {
                               color: Colors.grey.shade700,
                             ),
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 6), // KLEINER: was 8, nu 6
                           Row(
                             children: [
                               Container(
@@ -582,11 +584,11 @@ class _ExerciseLoggingScreenState extends State<ExerciseLoggingScreen> {
                                       border: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(8),
                                       ),
-                                      contentPadding:
-                                          const EdgeInsets.symmetric(
-                                            vertical: 16,
-                                            horizontal: 12,
-                                          ),
+                                      contentPadding: const EdgeInsets.symmetric(
+                                        vertical:
+                                            2, // ZEER LAAG: was 8, nu 2 (bijna gelijk aan buttons)
+                                        horizontal: 12,
+                                      ),
                                       hintText: "12",
                                       hintStyle: TextStyle(
                                         color: Colors.grey.shade400,
@@ -614,65 +616,62 @@ class _ExerciseLoggingScreenState extends State<ExerciseLoggingScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16),
 
-                      // RIR Selector Row
-                      Row(
+                      const SizedBox(height: 8), // KLEINER: was 16→12, nu 8
+                      // RIR Selector - ONGEWIJZIGD
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             "RIR:",
                             style: TextStyle(
-                              fontWeight: FontWeight.w500,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
                               color: Colors.grey.shade700,
                             ),
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: List.generate(8, (index) {
-                                final rir = index - 2; // -2 to +5
-                                final isSelected = _selectedRir == rir;
-                                return GestureDetector(
-                                  onTap: () =>
-                                      setState(() => _selectedRir = rir),
-                                  child: Container(
-                                    width: 35,
-                                    height: 35,
-                                    decoration: BoxDecoration(
-                                      color: isSelected
-                                          ? _getRirColor(rir)
-                                          : Colors.transparent,
-                                      border: Border.all(
-                                        color: _getRirColor(rir),
-                                        width: isSelected ? 3 : 2,
-                                      ),
-                                      borderRadius: BorderRadius.circular(8),
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 8,
+                            children: List.generate(8, (index) {
+                              final rir = index - 2; // -2 to +5
+                              final isSelected = rir == _selectedRir;
+                              return GestureDetector(
+                                onTap: () => setState(() => _selectedRir = rir),
+                                child: Container(
+                                  width: 36,
+                                  height: 36,
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? _getRirColor(rir)
+                                        : Colors.white,
+                                    border: Border.all(
+                                      color: _getRirColor(rir),
+                                      width: isSelected ? 3 : 2,
                                     ),
-                                    child: Center(
-                                      child: Text(
-                                        rir >= 0 ? '$rir' : '$rir',
-                                        style: TextStyle(
-                                          color: isSelected
-                                              ? Colors.white
-                                              : _getRirColor(rir),
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 14,
-                                        ),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      rir >= 0 ? '$rir' : '$rir',
+                                      style: TextStyle(
+                                        color: isSelected
+                                            ? Colors.white
+                                            : _getRirColor(rir),
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
                                       ),
                                     ),
                                   ),
-                                );
-                              }),
-                            ),
+                                ),
+                              );
+                            }),
                           ),
                         ],
                       ),
 
-                      const SizedBox(height: 20),
-
-                      // Action Buttons Row
-                      // Action Buttons Row - FIXED CLEAR BUTTON
+                      const SizedBox(height: 16), // IETS KLEINER: was 20, nu 16
+                      // Action Buttons - ONGEWIJZIGD
                       Row(
                         children: [
                           // Add Set (Primary Action)
@@ -697,7 +696,7 @@ class _ExerciseLoggingScreenState extends State<ExerciseLoggingScreen> {
                           ),
                           const SizedBox(width: 12),
 
-                          // Clear Inputs - FIXED STYLING
+                          // Clear Inputs
                           Expanded(
                             flex: 1,
                             child: ElevatedButton.icon(
@@ -736,9 +735,7 @@ class _ExerciseLoggingScreenState extends State<ExerciseLoggingScreen> {
                       ),
                     ],
                   ),
-                ),
-
-                // Planned Sets List (Scrollable)
+                ), // Planned Sets List (Scrollable)
                 Expanded(
                   child: _plannedSets.isEmpty
                       ? Center(
