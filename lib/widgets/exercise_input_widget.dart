@@ -674,13 +674,11 @@ class _ExerciseInputWidgetState extends State<ExerciseInputWidget> {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: _selectedRir == rir
-                              ? _getRirColor(rir)
-                              : HyperTrackTheme.lightGrey,
+                          color: _getRirColor(rir),
                           width: _selectedRir == rir ? 2 : 1,
                         ),
                         color: _selectedRir == rir
-                            ? _getRirColor(rir).withOpacity(0.1)
+                            ? _getRirColor(rir)
                             : Colors.transparent,
                       ),
                       child: Center(
@@ -688,12 +686,11 @@ class _ExerciseInputWidgetState extends State<ExerciseInputWidget> {
                           rir >= 0 ? '$rir' : '$rir',
                           style: HyperTrackTheme.bodyText.copyWith(
                             color: _selectedRir == rir
-                                ? _getRirColor(rir)
+                                ? Colors.white
                                 : HyperTrackTheme.mediumGrey,
                             fontWeight: _selectedRir == rir
                                 ? FontWeight.w600
-                                : FontWeight.w400,
-                            fontSize: 12,
+                                : FontWeight.normal,
                           ),
                         ),
                       ),
