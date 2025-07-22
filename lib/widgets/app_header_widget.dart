@@ -67,10 +67,53 @@ class AppHeaderWidget extends StatelessWidget implements PreferredSizeWidget {
       );
     }
 
-    return IconButton(
-      icon: const Icon(LucideIcons.menu),
-      onPressed: onMenuPressed,
+    // Navigation as elegant three vertical dots menu (top-anchored)
+    return PopupMenuButton<String>(
+      icon: const Icon(LucideIcons.moreVertical),
       tooltip: "Navigation Menu",
+      onSelected: _handleNavigationSelection,
+      itemBuilder: (context) => [
+        const PopupMenuItem(
+          value: 'home',
+          child: Row(
+            children: [
+              Icon(LucideIcons.home, size: 16),
+              SizedBox(width: 8),
+              Text('Home'),
+            ],
+          ),
+        ),
+        const PopupMenuItem(
+          value: 'exercises',
+          child: Row(
+            children: [
+              Icon(LucideIcons.dumbbell, size: 16),
+              SizedBox(width: 8),
+              Text('Exercises'),
+            ],
+          ),
+        ),
+        const PopupMenuItem(
+          value: 'gyms',
+          child: Row(
+            children: [
+              Icon(LucideIcons.mapPin, size: 16),
+              SizedBox(width: 8),
+              Text('Gyms'),
+            ],
+          ),
+        ),
+        const PopupMenuItem(
+          value: 'stats',
+          child: Row(
+            children: [
+              Icon(LucideIcons.barChart3, size: 16),
+              SizedBox(width: 8),
+              Text('Statistics'),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -88,60 +131,11 @@ class AppHeaderWidget extends StatelessWidget implements PreferredSizeWidget {
 
   List<Widget> _buildActionWidgets() {
     return [
-      // Settings button
+      // Settings button (exercise-specific)
       IconButton(
         icon: const Icon(LucideIcons.settings),
         onPressed: onSettingsPressed,
         tooltip: "Exercise Settings",
-      ),
-
-      // More options menu
-      PopupMenuButton<String>(
-        icon: const Icon(LucideIcons.moreVertical),
-        tooltip: "More Options",
-        onSelected: _handleMenuSelection,
-        itemBuilder: (context) => [
-          const PopupMenuItem(
-            value: 'profile',
-            child: Row(
-              children: [
-                Icon(LucideIcons.user, size: 16),
-                SizedBox(width: 8),
-                Text('Profile'),
-              ],
-            ),
-          ),
-          const PopupMenuItem(
-            value: 'stats',
-            child: Row(
-              children: [
-                Icon(LucideIcons.barChart3, size: 16),
-                SizedBox(width: 8),
-                Text('Statistics'),
-              ],
-            ),
-          ),
-          const PopupMenuItem(
-            value: 'export',
-            child: Row(
-              children: [
-                Icon(LucideIcons.download, size: 16),
-                SizedBox(width: 8),
-                Text('Export Data'),
-              ],
-            ),
-          ),
-          const PopupMenuItem(
-            value: 'about',
-            child: Row(
-              children: [
-                Icon(LucideIcons.info, size: 16),
-                SizedBox(width: 8),
-                Text('About'),
-              ],
-            ),
-          ),
-        ],
       ),
       const SizedBox(width: 4), // Small right padding
     ];
@@ -151,22 +145,24 @@ class AppHeaderWidget extends StatelessWidget implements PreferredSizeWidget {
   // EVENT HANDLERS
   // ─────────────────────────────────────────────────────────────
 
-  void _handleMenuSelection(String value) {
-    // Future: Handle menu selections
-    print("AppHeaderWidget: Menu selection - $value");
+  void _handleNavigationSelection(String value) {
+    // Trigger the navigation callback with the selected destination
+    onMenuPressed(); // Keep existing callback for compatibility
+    print("AppHeaderWidget: Navigation - $value");
 
+    // Future: Could pass specific value to parent via enhanced callback
     switch (value) {
-      case 'profile':
-        // TODO: Navigate to profile screen
+      case 'home':
+        // TODO: Navigate to home
+        break;
+      case 'exercises':
+        // TODO: Navigate to exercises
+        break;
+      case 'gyms':
+        // TODO: Navigate to gyms
         break;
       case 'stats':
-        // TODO: Open statistics view
-        break;
-      case 'export':
-        // TODO: Export data functionality
-        break;
-      case 'about':
-        // TODO: Show about dialog
+        // TODO: Navigate to statistics
         break;
     }
   }

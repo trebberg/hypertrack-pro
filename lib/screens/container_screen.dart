@@ -1,13 +1,14 @@
 // ═══════════════════════════════════════════════════════════════
 // WIDGET: Container Screen
 // PURPOSE: Layout manager with imported components architecture
-// DEPENDENCIES: Material, AppHeaderWidget, exercise components
+// DEPENDENCIES: Material, AppHeaderWidget, HyperTrackTheme, exercise components
 // RELATIONSHIPS: Parent to all feature components, layout orchestration
 // ═══════════════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../widgets/app_header_widget.dart';
+import '../theme/app_theme.dart';
 // TODO: Import when created
 // import '../widgets/exercise_input_widget.dart';
 // import '../widgets/exercise_history_widget.dart';
@@ -36,7 +37,8 @@ class _ContainerScreenState extends State<ContainerScreen> {
   // ─────────────────────────────────────────────────────────────
 
   bool _isLoading = false;
-  String _statusMessage = "AppHeaderWidget integration successful";
+  String _statusMessage =
+      "HyperTrack Design System active: monotone outlines + color icons";
 
   // ─────────────────────────────────────────────────────────────
   // LIFECYCLE METHODS
@@ -64,11 +66,10 @@ class _ContainerScreenState extends State<ContainerScreen> {
     });
   }
 
-  void _handleNavigationRequest(String destination) {
-    // Future: Handle navigation between modules
-    print("Container: Navigation to $destination requested");
-    _handleComponentUpdate("Navigation", "Request to $destination");
-    _showNavigationMenu();
+  void _handleNavigationRequest() {
+    // Navigation now handled by AppHeaderWidget PopupMenu
+    print("Container: Navigation menu requested");
+    _handleComponentUpdate("Navigation", "Menu accessed via three-dots");
   }
 
   void _handleExerciseSettingsRequest() {
@@ -88,14 +89,14 @@ class _ContainerScreenState extends State<ContainerScreen> {
       // IMPORTED HEADER COMPONENT
       appBar: AppHeaderWidget(
         title: widget.exerciseName,
-        onMenuPressed: () => _handleNavigationRequest("menu"),
+        onMenuPressed: _handleNavigationRequest,
         onSettingsPressed: _handleExerciseSettingsRequest,
       ),
 
       // COMPONENT COMPOSITION BODY
       body: _buildComponentBody(),
 
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: HyperTrackTheme.almostWhite, // 🎨 NEW: Themed background
     );
   }
 
@@ -113,30 +114,40 @@ class _ContainerScreenState extends State<ContainerScreen> {
           _buildComponentPlaceholder(
             "ExerciseInputWidget",
             "Weight/reps/RIR input with validation (~200 lines)",
+            LucideIcons.edit3,
+            'weight',
           ),
           const SizedBox(height: 16),
 
           _buildComponentPlaceholder(
             "ExerciseHistoryWidget",
             "Previous sets display with smart history (~150 lines)",
+            LucideIcons.history,
+            'history',
           ),
           const SizedBox(height: 16),
 
           _buildComponentPlaceholder(
             "ExerciseTimerWidget",
             "Rest timer with persistence (~100 lines)",
+            LucideIcons.timer,
+            'timer',
           ),
           const SizedBox(height: 16),
 
           _buildComponentPlaceholder(
             "ExerciseGraphWidget",
             "Performance visualization (~200 lines)",
+            LucideIcons.trendingUp,
+            'trend',
           ),
           const SizedBox(height: 16),
 
           _buildComponentPlaceholder(
             "ExerciseStatsWidget",
             "Session statistics and records (~150 lines)",
+            LucideIcons.barChart3,
+            'stats',
           ),
         ],
       ),
@@ -144,96 +155,133 @@ class _ContainerScreenState extends State<ContainerScreen> {
   }
 
   Widget _buildContainerStatus() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Colors.blue.shade50, Colors.white],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.blue.shade100),
-      ),
+    return HyperTrackTheme.themedContainer(
+      // 🎨 NEW: Themed container with outline
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(LucideIcons.layers, color: Colors.blue.shade600),
-              const SizedBox(width: 8),
+              HyperTrackTheme.coloredIcon(
+                LucideIcons.layers,
+                'exercises',
+                size: 24,
+              ), // 🎨 NEW: Colored icon
+              const SizedBox(width: 12),
               const Text(
                 "Component Architecture - Foundation Complete",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style: HyperTrackTheme.headerText, // 🎨 NEW: Themed typography
               ),
             ],
           ),
           const SizedBox(height: 8),
           Text(
             "Status: $_statusMessage",
-            style: TextStyle(color: Colors.grey.shade600),
+            style: HyperTrackTheme.bodyText, // 🎨 NEW: Themed body text
           ),
           const SizedBox(height: 12),
-          const Text(
-            "✅ Layout manager with component composition",
-            style: TextStyle(color: Colors.green, fontSize: 12),
+
+          // Status indicators with colored icons
+          Row(
+            children: [
+              HyperTrackTheme.coloredIcon(LucideIcons.check, 'add', size: 14),
+              const SizedBox(width: 6),
+              const Expanded(
+                child: Text(
+                  "Layout manager with component composition",
+                  style: HyperTrackTheme.captionText,
+                ),
+              ),
+            ],
           ),
-          const Text(
-            "✅ AppHeaderWidget successfully integrated",
-            style: TextStyle(color: Colors.green, fontSize: 12),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              HyperTrackTheme.coloredIcon(LucideIcons.check, 'add', size: 14),
+              const SizedBox(width: 6),
+              const Expanded(
+                child: Text(
+                  "AppHeaderWidget: Clean navigation UX",
+                  style: HyperTrackTheme.captionText,
+                ),
+              ),
+            ],
           ),
-          const Text(
-            "✅ Component communication hub established",
-            style: TextStyle(color: Colors.green, fontSize: 12),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              HyperTrackTheme.coloredIcon(LucideIcons.check, 'add', size: 14),
+              const SizedBox(width: 6),
+              const Expanded(
+                child: Text(
+                  "HyperTrack Design System integrated",
+                  style: HyperTrackTheme.captionText,
+                ),
+              ),
+            ],
           ),
-          const Text(
-            "🔄 Ready for exercise component creation",
-            style: TextStyle(color: Colors.orange, fontSize: 12),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              HyperTrackTheme.coloredIcon(LucideIcons.clock, 'timer', size: 14),
+              const SizedBox(width: 6),
+              const Expanded(
+                child: Text(
+                  "Ready for exercise component creation",
+                  style: HyperTrackTheme.captionText,
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildComponentPlaceholder(String componentName, String description) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade300),
-        borderRadius: BorderRadius.circular(8),
-        color: Colors.white,
-      ),
+  Widget _buildComponentPlaceholder(
+    String componentName,
+    String description,
+    IconData icon,
+    String iconType,
+  ) {
+    return HyperTrackTheme.outlinedCard(
+      // 🎨 NEW: Themed card with outline
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(LucideIcons.package, size: 16, color: Colors.grey.shade600),
-              const SizedBox(width: 8),
+              HyperTrackTheme.coloredIcon(
+                icon,
+                iconType,
+                size: 20,
+              ), // 🎨 NEW: Colored functional icon
+              const SizedBox(width: 12),
               Text(
                 componentName,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
+                style: HyperTrackTheme.headerText, // 🎨 NEW: Themed typography
               ),
             ],
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 8),
           Text(
             description,
-            style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+            style: HyperTrackTheme.bodyText, // 🎨 NEW: Themed body text
           ),
-          const SizedBox(height: 8),
-          const Text(
-            "// TODO: Import and integrate actual component",
-            style: TextStyle(
-              color: Colors.grey,
-              fontSize: 10,
-              fontStyle: FontStyle.italic,
-            ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              HyperTrackTheme.coloredIcon(
+                LucideIcons.code,
+                'settings',
+                size: 12,
+              ),
+              const SizedBox(width: 6),
+              const Text(
+                "TODO: Import and integrate actual component",
+                style: HyperTrackTheme.captionText, // 🎨 NEW: Themed caption
+              ),
+            ],
           ),
         ],
       ),
@@ -243,57 +291,6 @@ class _ContainerScreenState extends State<ContainerScreen> {
   // ─────────────────────────────────────────────────────────────
   // EVENT HANDLERS (MODAL DIALOGS)
   // ─────────────────────────────────────────────────────────────
-
-  void _showNavigationMenu() {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              "Navigation Menu",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            ListTile(
-              leading: const Icon(LucideIcons.home),
-              title: const Text("Home"),
-              onTap: () {
-                Navigator.pop(context);
-                _handleComponentUpdate("Navigation", "Navigate to Home");
-              },
-            ),
-            ListTile(
-              leading: const Icon(LucideIcons.dumbbell),
-              title: const Text("Exercises"),
-              onTap: () {
-                Navigator.pop(context);
-                _handleComponentUpdate("Navigation", "Navigate to Exercises");
-              },
-            ),
-            ListTile(
-              leading: const Icon(LucideIcons.mapPin),
-              title: const Text("Gyms"),
-              onTap: () {
-                Navigator.pop(context);
-                _handleComponentUpdate("Navigation", "Navigate to Gyms");
-              },
-            ),
-            ListTile(
-              leading: const Icon(LucideIcons.barChart3),
-              title: const Text("Statistics"),
-              onTap: () {
-                Navigator.pop(context);
-                _handleComponentUpdate("Navigation", "Navigate to Statistics");
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   void _showExerciseSettings() {
     showDialog(
