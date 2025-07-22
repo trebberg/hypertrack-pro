@@ -8,9 +8,10 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../widgets/app_header_widget.dart';
+import '../widgets/exercise_input_widget.dart';
 import '../theme/app_theme.dart';
+import '../models/exercise_set.dart';
 // TODO: Import when created
-// import '../widgets/exercise_input_widget.dart';
 // import '../widgets/exercise_history_widget.dart';
 
 class ContainerScreen extends StatefulWidget {
@@ -37,8 +38,7 @@ class _ContainerScreenState extends State<ContainerScreen> {
   // ─────────────────────────────────────────────────────────────
 
   bool _isLoading = false;
-  String _statusMessage =
-      "HyperTrack Design System active: monotone outlines + color icons";
+  String _statusMessage = "ExerciseInputWidget loaded - Real component active";
 
   // ─────────────────────────────────────────────────────────────
   // LIFECYCLE METHODS
@@ -52,7 +52,7 @@ class _ContainerScreenState extends State<ContainerScreen> {
 
   void _initializeContainer() {
     setState(() {
-      _statusMessage = "Layout manager ready for ${widget.exerciseName}";
+      _statusMessage = "ExerciseInputWidget loaded for ${widget.exerciseName}";
     });
   }
 
@@ -77,6 +77,32 @@ class _ContainerScreenState extends State<ContainerScreen> {
     print("Container: Exercise settings requested");
     _handleComponentUpdate("Settings", "Exercise configuration opened");
     _showExerciseSettings();
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // EXERCISE INPUT WIDGET CALLBACKS
+  // ─────────────────────────────────────────────────────────────
+
+  void _handleSetCompleted(ExerciseSet setData) {
+    _handleComponentUpdate(
+      "ExerciseInput",
+      "Set ${setData.setNumber} completed: ${setData.weight}kg × ${setData.reps} reps",
+    );
+    print("Container: Set completed - ${setData.displayText}");
+  }
+
+  void _handleInputError(String error) {
+    _handleComponentUpdate("ExerciseInput", "Error: $error");
+    print("Container: Input error - $error");
+
+    // Show snackbar for user feedback
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Error: $error"),
+        backgroundColor: Colors.red.shade600,
+        duration: const Duration(seconds: 3),
+      ),
+    );
   }
 
   // ─────────────────────────────────────────────────────────────
@@ -110,15 +136,20 @@ class _ContainerScreenState extends State<ContainerScreen> {
           _buildContainerStatus(),
           const SizedBox(height: 24),
 
-          // Component placeholders (to be replaced with actual components)
-          _buildComponentPlaceholder(
-            "ExerciseInputWidget",
-            "Weight/reps/RIR input with validation (~200 lines)",
-            LucideIcons.edit3,
-            'weight',
+          // 🎯 REAL EXERCISE INPUT WIDGET - ACTIVE COMPONENT
+          ExerciseInputWidget(
+            userId: widget.userId,
+            workoutId: widget.workoutId,
+            exerciseId: widget.exerciseId,
+            exerciseName: widget.exerciseName,
+            onStatusUpdate: (message) =>
+                _handleComponentUpdate("ExerciseInput", message),
+            onSetCompleted: _handleSetCompleted,
+            onError: _handleInputError,
           ),
           const SizedBox(height: 16),
 
+          // Remaining component placeholders
           _buildComponentPlaceholder(
             "ExerciseHistoryWidget",
             "Previous sets display with smart history (~150 lines)",
@@ -169,7 +200,7 @@ class _ContainerScreenState extends State<ContainerScreen> {
               ), // 🎨 NEW: Colored icon
               const SizedBox(width: 12),
               const Text(
-                "Component Architecture - Foundation Complete",
+                "Component Architecture - ExerciseInputWidget ACTIVE",
                 style: HyperTrackTheme.headerText, // 🎨 NEW: Themed typography
               ),
             ],
@@ -188,7 +219,7 @@ class _ContainerScreenState extends State<ContainerScreen> {
               const SizedBox(width: 6),
               const Expanded(
                 child: Text(
-                  "Layout manager with component composition",
+                  "ExerciseInputWidget: Weight/reps/RIR input with database",
                   style: HyperTrackTheme.captionText,
                 ),
               ),
@@ -201,7 +232,7 @@ class _ContainerScreenState extends State<ContainerScreen> {
               const SizedBox(width: 6),
               const Expanded(
                 child: Text(
-                  "AppHeaderWidget: Clean navigation UX",
+                  "Smart History: Last performance display working",
                   style: HyperTrackTheme.captionText,
                 ),
               ),
@@ -214,7 +245,7 @@ class _ContainerScreenState extends State<ContainerScreen> {
               const SizedBox(width: 6),
               const Expanded(
                 child: Text(
-                  "HyperTrack Design System integrated",
+                  "HyperTrack Design System: Purple exercise theming",
                   style: HyperTrackTheme.captionText,
                 ),
               ),
@@ -223,11 +254,15 @@ class _ContainerScreenState extends State<ContainerScreen> {
           const SizedBox(height: 4),
           Row(
             children: [
-              HyperTrackTheme.coloredIcon(LucideIcons.clock, 'timer', size: 14),
+              HyperTrackTheme.coloredIcon(
+                LucideIcons.dumbbell,
+                'exercises',
+                size: 14,
+              ),
               const SizedBox(width: 6),
               const Expanded(
                 child: Text(
-                  "Ready for exercise component creation",
+                  "First real exercise component successfully integrated",
                   style: HyperTrackTheme.captionText,
                 ),
               ),

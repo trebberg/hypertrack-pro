@@ -1,10 +1,3 @@
-// ═══════════════════════════════════════════════════════════════
-// MAIN APPLICATION ENTRY POINT
-// PURPOSE: HyperTrack Pro app initialization with component testing
-// DEPENDENCIES: Flutter Material, HyperTrackTheme, ContainerScreen
-// THEMING: Complete HyperTrack Design System integration
-// ═══════════════════════════════════════════════════════════════
-
 import 'package:flutter/material.dart';
 import 'theme/app_theme.dart';
 import 'screens/container_screen.dart';
@@ -14,129 +7,151 @@ void main() {
 }
 
 class HyperTrackProApp extends StatelessWidget {
-  const HyperTrackProApp({Key? key}) : super(key: key);
+  const HyperTrackProApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'HyperTrack Pro - Component Testing',
-      theme: HyperTrackTheme.lightTheme,
-      debugShowCheckedModeBanner: false,
-      home: const ComponentTestingLauncher(),
+      title: 'HyperTrack Pro',
+      theme: HyperTrackTheme.theme, // ✅ FIX: theme instead of lightTheme
+      home: const HyperTrackHomePage(),
     );
   }
 }
 
-class ComponentTestingLauncher extends StatelessWidget {
-  const ComponentTestingLauncher({Key? key}) : super(key: key);
+class HyperTrackHomePage extends StatelessWidget {
+  const HyperTrackHomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: HyperTrackTheme.almostWhite,
       appBar: AppBar(
-        title: HyperTrackTheme.headerText('HyperTrack Pro - Component Testing'),
-        backgroundColor: Colors.white,
-        elevation: 1,
-        centerTitle: true,
+        title: Text(
+          'HyperTrack Pro - Component Testing',
+          style: HyperTrackTheme.headerText,
+        ), // ✅ FIX: Text widget with style
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            HyperTrackTheme.outlinedCard(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    HyperTrackTheme.headerText('Component Testing Environment'),
-                    const SizedBox(height: 8),
-                    HyperTrackTheme.bodyText(
-                      'Testing the first two components:\n'
-                      '• SetCountingWidget (195 lines)\n'
-                      '• ExerciseInputWidget (256 lines)\n'
-                      '• ExerciseInputContainer (280 lines)',
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            HyperTrackTheme.outlinedCard(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    HyperTrackTheme.headerText('Test Exercises'),
-                    const SizedBox(height: 12),
-                    _buildExerciseTestButton(
-                      context,
-                      'Bench Press',
-                      'bench_press_001',
-                      'Test weight/reps input with set counting',
-                    ),
-                    const SizedBox(height: 8),
-                    _buildExerciseTestButton(
-                      context,
-                      'Squats',
-                      'squats_001',
-                      'Test multi-set progression with validation',
-                    ),
-                    const SizedBox(height: 8),
-                    _buildExerciseTestButton(
-                      context,
-                      'Deadlifts',
-                      'deadlifts_001',
-                      'Test component communication and theming',
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            HyperTrackTheme.outlinedCard(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    HyperTrackTheme.headerText('Next Components'),
-                    const SizedBox(height: 8),
-                    HyperTrackTheme.bodyText(
-                      '🔄 RIRSelectionWidget (Component 3)\n'
-                      '🔄 SetSubmissionWidget (Component 4)\n'
-                      '🔄 ExerciseTimerWidget (Component 5)',
-                      color: Colors.orange.shade700,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const Spacer(),
+            // Status section
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: HyperTrackTheme.getIconColor(
-                  'exercise',
-                ).withOpacity(0.05),
+                border: Border.all(color: Colors.grey.shade300),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: HyperTrackTheme.getIconColor(
-                    'exercise',
-                  ).withOpacity(0.3),
-                ),
+                color: Colors.grey.shade50,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  HyperTrackTheme.bodyText('HyperTrack Design System Active'),
-                  const SizedBox(height: 4),
-                  HyperTrackTheme.captionText(
-                    'Monotone outlines + colorful functional icons\n'
-                    'Exercise: Purple • Timer: Red • Stats: Gold',
+                  Text(
+                    'Component Testing Environment', // ✅ FIX: Text widget with style
+                    style: HyperTrackTheme.headerText,
+                  ),
+                  Text(
+                    'Foundation architecture complete:\n'
+                    '✅ Container Screen (189 lines)\n'
+                    '✅ AppHeaderWidget (150 lines)\n'
+                    '✅ HyperTrack Design System\n'
+                    '🔄 Ready for exercise components',
+                    style: HyperTrackTheme
+                        .bodyText, // ✅ FIX: Text widget with style
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Test exercises section
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey.shade300),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Test Exercises',
+                    style: HyperTrackTheme.headerText,
+                  ), // ✅ FIX: Text widget with style
+                  const SizedBox(height: 16),
+                  ...['Bench Press', 'Squat', 'Deadlift', 'Overhead Press'].map(
+                    (exercise) => Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () =>
+                              _navigateToExercise(context, exercise),
+                          child: Text(exercise),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Next components section
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey.shade300),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Next Components',
+                    style: HyperTrackTheme.headerText,
+                  ), // ✅ FIX: Text widget with style
+                  Text(
+                    'Phase 1.5.2: Core Exercise Components\n'
+                    '• ExerciseInputWidget (weight/reps)\n'
+                    '• ExerciseHistoryWidget (smart history)\n'
+                    '• ExerciseTimerWidget (rest timer)',
+                    style: HyperTrackTheme
+                        .bodyText, // ✅ FIX: Text widget with style
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+
+      // Status footer
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade100,
+          border: Border(top: BorderSide(color: Colors.grey.shade300)),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.check_circle, color: Colors.green, size: 16),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'HyperTrack Design System Active',
+                    style: HyperTrackTheme.bodyText,
+                  ), // ✅ FIX: Text widget with style
+                  Text(
+                    'Container architecture ready • AppHeader integrated', // ✅ FIX: Text widget with style
+                    style: HyperTrackTheme.captionText,
                   ),
                 ],
               ),
@@ -147,40 +162,59 @@ class ComponentTestingLauncher extends StatelessWidget {
     );
   }
 
-  Widget _buildExerciseTestButton(
-    BuildContext context,
-    String exerciseName,
-    String exerciseId,
-    String description,
-  ) {
-    return SizedBox(
-      width: double.infinity,
+  static void _navigateToExercise(BuildContext context, String exerciseName) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ContainerScreen(
+          // ✅ FIX: Added required parameters
+          userId: 1,
+          workoutId: 1,
+          exerciseId: 1,
+          exerciseName: exerciseName,
+        ),
+      ),
+    );
+  }
+}
+
+class ExerciseButton extends StatelessWidget {
+  final String exerciseName;
+
+  const ExerciseButton({super.key, required this.exerciseName});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
       child: ElevatedButton(
         onPressed: () {
-          Navigator.push(
-            context,
+          Navigator.of(context).push(
             MaterialPageRoute(
               builder: (context) => ContainerScreen(
+                // ✅ FIX: Added required parameters
+                userId: 1,
+                workoutId: 1,
+                exerciseId: 1,
                 exerciseName: exerciseName,
-                exerciseId: exerciseId,
               ),
             ),
           );
         },
         style: ElevatedButton.styleFrom(
-          backgroundColor: HyperTrackTheme.getIconColor('exercise'),
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.all(16),
-          alignment: Alignment.centerLeft,
+          minimumSize: const Size(double.infinity, 48),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
           children: [
-            HyperTrackTheme.headerText(exerciseName, color: Colors.white),
-            const SizedBox(height: 4),
-            HyperTrackTheme.captionText(
-              description,
-              color: Colors.white.withOpacity(0.9),
+            Text(
+              exerciseName,
+              style: HyperTrackTheme.headerText.copyWith(color: Colors.white),
+            ), // ✅ FIX: Text widget with style
+            const Spacer(),
+            Text(
+              'Test Component →', // ✅ FIX: Text widget with style
+              style: HyperTrackTheme.captionText.copyWith(
+                color: Colors.white70,
+              ),
             ),
           ],
         ),
