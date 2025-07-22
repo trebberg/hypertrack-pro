@@ -7,8 +7,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import '../widgets/app_header_widget.dart';
 // TODO: Import when created
-// import '../widgets/app_header_widget.dart';
 // import '../widgets/exercise_input_widget.dart';
 // import '../widgets/exercise_history_widget.dart';
 
@@ -36,7 +36,7 @@ class _ContainerScreenState extends State<ContainerScreen> {
   // ─────────────────────────────────────────────────────────────
 
   bool _isLoading = false;
-  String _statusMessage = "Container initialized - component architecture";
+  String _statusMessage = "AppHeaderWidget integration successful";
 
   // ─────────────────────────────────────────────────────────────
   // LIFECYCLE METHODS
@@ -68,12 +68,14 @@ class _ContainerScreenState extends State<ContainerScreen> {
     // Future: Handle navigation between modules
     print("Container: Navigation to $destination requested");
     _handleComponentUpdate("Navigation", "Request to $destination");
+    _showNavigationMenu();
   }
 
   void _handleExerciseSettingsRequest() {
     // Future: Open exercise settings modal
     print("Container: Exercise settings requested");
     _handleComponentUpdate("Settings", "Exercise configuration opened");
+    _showExerciseSettings();
   }
 
   // ─────────────────────────────────────────────────────────────
@@ -84,7 +86,11 @@ class _ContainerScreenState extends State<ContainerScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       // IMPORTED HEADER COMPONENT
-      appBar: _buildAppHeaderWidget(),
+      appBar: AppHeaderWidget(
+        title: widget.exerciseName,
+        onMenuPressed: () => _handleNavigationRequest("menu"),
+        onSettingsPressed: _handleExerciseSettingsRequest,
+      ),
 
       // COMPONENT COMPOSITION BODY
       body: _buildComponentBody(),
@@ -93,134 +99,99 @@ class _ContainerScreenState extends State<ContainerScreen> {
     );
   }
 
-  PreferredSizeWidget _buildAppHeaderWidget() {
-    // TODO: Replace with actual AppHeaderWidget import
-    // return AppHeaderWidget(
-    //   title: widget.exerciseName,
-    //   onMenuPressed: _handleNavigationRequest,
-    //   onSettingsPressed: _handleExerciseSettingsRequest,
-    // );
-
-    // TEMPORARY: Manual header until AppHeaderWidget created
-    return AppBar(
-      // LEFT: Navigation menu
-      leading: IconButton(
-        icon: const Icon(LucideIcons.menu),
-        onPressed: () => _showNavigationMenu(),
-        tooltip: "Navigation Menu",
-      ),
-
-      // CENTER: Context title
-      title: Text(
-        widget.exerciseName,
-        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-      ),
-
-      backgroundColor: Colors.white,
-      foregroundColor: Colors.black87,
-      elevation: 1,
-
-      // RIGHT: Contextual settings
-      actions: [
-        IconButton(
-          icon: const Icon(LucideIcons.settings),
-          onPressed: _handleExerciseSettingsRequest,
-          tooltip: "Exercise Settings",
-        ),
-      ],
-    );
-  }
-
   Widget _buildComponentBody() {
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    // COMPONENT COMPOSITION ARCHITECTURE
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // STATUS INDICATOR (temporary)
-          _buildStatusCard(),
+          // Container status display
+          _buildContainerStatus(),
+          const SizedBox(height: 24),
 
-          const SizedBox(height: 16),
-
-          // TODO: Replace with actual imported components
-          // ExerciseInputWidget(
-          //   exerciseId: widget.exerciseId,
-          //   onSetComplete: (setData) => _handleComponentUpdate("Input", "Set completed"),
-          // ),
-
-          // ExerciseHistoryWidget(
-          //   exerciseId: widget.exerciseId,
-          //   userId: widget.userId,
-          //   onSetEdit: (setId) => _handleComponentUpdate("History", "Set $setId edited"),
-          // ),
-
-          // TEMPORARY: Component placeholders
+          // Component placeholders (to be replaced with actual components)
           _buildComponentPlaceholder(
             "ExerciseInputWidget",
-            "Weight/reps input form",
+            "Weight/reps/RIR input with validation (~200 lines)",
           ),
           const SizedBox(height: 16),
+
           _buildComponentPlaceholder(
             "ExerciseHistoryWidget",
-            "Previous sets display",
+            "Previous sets display with smart history (~150 lines)",
           ),
           const SizedBox(height: 16),
+
           _buildComponentPlaceholder(
             "ExerciseTimerWidget",
-            "Rest timer controls",
+            "Rest timer with persistence (~100 lines)",
           ),
           const SizedBox(height: 16),
+
           _buildComponentPlaceholder(
             "ExerciseGraphWidget",
-            "Performance visualization",
+            "Performance visualization (~200 lines)",
+          ),
+          const SizedBox(height: 16),
+
+          _buildComponentPlaceholder(
+            "ExerciseStatsWidget",
+            "Session statistics and records (~150 lines)",
           ),
         ],
       ),
     );
   }
 
-  Widget _buildStatusCard() {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(LucideIcons.layers, color: Colors.blue.shade600),
-                const SizedBox(width: 8),
-                const Text(
-                  "Component Architecture Container",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              "Status: $_statusMessage",
-              style: TextStyle(color: Colors.grey.shade600),
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              "✅ Layout manager with component composition",
-              style: TextStyle(color: Colors.green, fontSize: 12),
-            ),
-            const Text(
-              "✅ AppHeaderWidget integration ready",
-              style: TextStyle(color: Colors.green, fontSize: 12),
-            ),
-            const Text(
-              "🔄 Next: Create small components (<250 lines each)",
-              style: TextStyle(color: Colors.orange, fontSize: 12),
-            ),
-          ],
+  Widget _buildContainerStatus() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.blue.shade50, Colors.white],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.blue.shade100),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(LucideIcons.layers, color: Colors.blue.shade600),
+              const SizedBox(width: 8),
+              const Text(
+                "Component Architecture - Foundation Complete",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            "Status: $_statusMessage",
+            style: TextStyle(color: Colors.grey.shade600),
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            "✅ Layout manager with component composition",
+            style: TextStyle(color: Colors.green, fontSize: 12),
+          ),
+          const Text(
+            "✅ AppHeaderWidget successfully integrated",
+            style: TextStyle(color: Colors.green, fontSize: 12),
+          ),
+          const Text(
+            "✅ Component communication hub established",
+            style: TextStyle(color: Colors.green, fontSize: 12),
+          ),
+          const Text(
+            "🔄 Ready for exercise component creation",
+            style: TextStyle(color: Colors.orange, fontSize: 12),
+          ),
+        ],
       ),
     );
   }
@@ -269,6 +240,10 @@ class _ContainerScreenState extends State<ContainerScreen> {
     );
   }
 
+  // ─────────────────────────────────────────────────────────────
+  // EVENT HANDLERS (MODAL DIALOGS)
+  // ─────────────────────────────────────────────────────────────
+
   void _showNavigationMenu() {
     showModalBottomSheet(
       context: context,
@@ -287,7 +262,7 @@ class _ContainerScreenState extends State<ContainerScreen> {
               title: const Text("Home"),
               onTap: () {
                 Navigator.pop(context);
-                _handleNavigationRequest("home");
+                _handleComponentUpdate("Navigation", "Navigate to Home");
               },
             ),
             ListTile(
@@ -295,7 +270,7 @@ class _ContainerScreenState extends State<ContainerScreen> {
               title: const Text("Exercises"),
               onTap: () {
                 Navigator.pop(context);
-                _handleNavigationRequest("exercises");
+                _handleComponentUpdate("Navigation", "Navigate to Exercises");
               },
             ),
             ListTile(
@@ -303,11 +278,66 @@ class _ContainerScreenState extends State<ContainerScreen> {
               title: const Text("Gyms"),
               onTap: () {
                 Navigator.pop(context);
-                _handleNavigationRequest("gyms");
+                _handleComponentUpdate("Navigation", "Navigate to Gyms");
+              },
+            ),
+            ListTile(
+              leading: const Icon(LucideIcons.barChart3),
+              title: const Text("Statistics"),
+              onTap: () {
+                Navigator.pop(context);
+                _handleComponentUpdate("Navigation", "Navigate to Statistics");
               },
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showExerciseSettings() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(LucideIcons.settings),
+            SizedBox(width: 8),
+            Text("Exercise Settings"),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("Exercise: ${widget.exerciseName}"),
+            const SizedBox(height: 16),
+            const Text("Settings options:"),
+            const SizedBox(height: 8),
+            const Text("• Exercise availability per gym"),
+            const Text("• Rest timer preferences"),
+            const Text("• Weight increment settings"),
+            const Text("• Performance tracking options"),
+            const SizedBox(height: 16),
+            const Text(
+              "TODO: Implement actual settings widget",
+              style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _handleComponentUpdate("Settings", "Settings saved");
+            },
+            child: const Text("Save"),
+          ),
+        ],
       ),
     );
   }
