@@ -1,9 +1,7 @@
 // ═══════════════════════════════════════════════════════════════
-// WIDGET: SetExecutionWidget - Execution & Assessment Phase
-// PURPOSE: Planned sets execution, RIR assessment, myo-reps workflow
-// DEPENDENCIES: Material, AppDatabase, drift, HyperTrackTheme
-// RELATIONSHIPS: Receives planned sets from parent, manages execution flow
-// THEMING: Full HyperTrack Design System - outline + colored icons
+// WIDGET: SetExecutionWidget - Complete with compact RIR selection
+// PURPOSE: Execution phase with working RIR balk 4→0→-3
+// FILE: lib/widgets/set_execution_widget.dart
 // ═══════════════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
@@ -41,11 +39,11 @@ class SetExecutionWidget extends StatefulWidget {
 class _SetExecutionWidgetState extends State<SetExecutionWidget> {
   final AppDatabase _database = AppDatabase();
 
-  // RIR Selection State
-  int _selectedRir = 2; // Default RIR for next completion
+  // RIR Selection State - NEEDED for user selection
+  int _selectedRir = 2; // Default RIR value
 
   // Execution State
-  List<ExerciseSet> _completedSets = [];
+  Set<int> _completedSetNumbers = {}; // Track which set numbers are completed
   bool _isExecuting = false;
 
   // Rest Timer State
@@ -65,7 +63,7 @@ class _SetExecutionWidgetState extends State<SetExecutionWidget> {
     super.dispose();
   }
 
-  // RIR COLOR CODING (PRESERVED FROM ORIGINAL)
+  // RIR COLOR CODING
   Color _getRirColor(int rir) {
     if (rir >= 3) return HyperTrackTheme.successGreen; // Easy sets
     if (rir >= 1) return HyperTrackTheme.exerciseBlue; // Moderate effort
@@ -73,14 +71,7 @@ class _SetExecutionWidgetState extends State<SetExecutionWidget> {
     return HyperTrackTheme.timerRed; // Failure/negatives
   }
 
-  // UPDATE RIR SELECTION
-  void _updateRir(int rir) {
-    setState(() {
-      _selectedRir = rir;
-    });
-  }
-
-  // COMPLETE SET WITH SELECTED RIR
+  // COMPLETE SET WITH SELECTED RIR - FIXED: Don't clear all sets
   Future<void> _completeSet(ExerciseSet plannedSet) async {
     if (_isExecuting) return;
 
@@ -89,380 +80,269 @@ class _SetExecutionWidgetState extends State<SetExecutionWidget> {
     });
 
     try {
-      // Save to database with selected RIR
+      // Save to database with selected RIR - FIXED: Remove userId parameter
       final setId = await _database.logNewSet(
         workoutId: widget.workoutId,
         exerciseId: widget.exerciseId,
         setNumber: plannedSet.setNumber,
         weight: plannedSet.weight,
         reps: plannedSet.reps,
-        repsInReserve: _selectedRir,
+        repsInReserve: _selectedRir, // Uses selected RIR from balk
       );
 
-      // Create completed set
+      // Create completed set for parent callback
       final completedSet = ExerciseSet.completed(
-        exerciseId: widget.exerciseId.toString(),
+        exerciseId: plannedSet.exerciseId,
         weight: plannedSet.weight,
         reps: plannedSet.reps,
         rir: _selectedRir,
         setNumber: plannedSet.setNumber,
       );
 
-      // Add to completed sets (slides down)
+      // FIXED: Only mark this specific set as completed
       setState(() {
-        _completedSets.add(completedSet);
-        _isExecuting = false;
+        _completedSetNumbers.add(plannedSet.setNumber);
       });
 
+      // Notify parent container
       widget.onSetCompleted(completedSet);
+
       widget.onStatusUpdate(
         "Set ${plannedSet.setNumber} completed with RIR $_selectedRir",
       );
 
-      // Check for myo-reps
-      if (_myoRepsEnabled && _selectedRir <= _myoRirThreshold) {
-        _showMyoRepsDecision();
-      } else {
-        _startRestTimer();
+      // Check for myo-reps decision
+      if (_selectedRir <= _myoRirThreshold) {
+        _showMyoRepsDecision(completedSet);
       }
     } catch (e) {
+      widget.onError('Failed to complete set: $e');
+    } finally {
       setState(() {
         _isExecuting = false;
       });
-      widget.onError('Error completing set: $e');
     }
   }
 
-  // MYO-REPS DECISION
-  void _showMyoRepsDecision() {
-    showDialog(
+  Future<void> _showMyoRepsDecision(ExerciseSet completedSet) async {
+    final shouldContinue = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            HyperTrackTheme.coloredIcon(LucideIcons.flame, 'timer', size: 20),
-            const SizedBox(width: 8),
-            const Text("Myo-Reps?"),
-          ],
-        ),
+        title: const Text('Myo-Reps Opportunity'),
         content: Text(
-          "RIR was $_selectedRir - perfect for myo-reps!\n\nDo ${_myoRestSeconds}s mini-sets until failure?",
+          'You completed set ${completedSet.setNumber} with RIR ${completedSet.rir}. '
+          'Would you like to continue with myo-reps?',
         ),
         actions: [
           TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              _startRestTimer();
-            },
-            child: const Text("Just Rest"),
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('No, finish'),
           ),
           ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              _startMyoSession();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: HyperTrackTheme.timerRed,
-            ),
-            child: const Text(
-              "LET'S MYO!",
-              style: TextStyle(color: Colors.white),
-            ),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Yes, myo-reps'),
           ),
         ],
       ),
     );
+
+    if (shouldContinue == true) {
+      widget.onStatusUpdate(
+        "Starting myo-reps after set ${completedSet.setNumber}",
+      );
+      // Future: Implement myo-reps workflow
+    }
   }
 
-  // START MYO SESSION
-  void _startMyoSession() {
-    widget.onStatusUpdate("Myo-reps session started! ${_myoRestSeconds}s rest");
-    // Start short myo rest timer
-    setState(() {
-      _timerRunning = true;
-      _restTimerSeconds = _myoRestSeconds;
-    });
-    // Timer logic would go here
-  }
-
-  // START REST TIMER
-  void _startRestTimer() {
-    setState(() {
-      _timerRunning = true;
-      _restTimerSeconds = 180; // Regular rest
-    });
-    widget.onStatusUpdate("Rest timer started: 3:00");
-    // Timer logic would go here
+  // HELPER METHODS - FIXED: Use set numbers instead of set objects
+  bool _isSetCompleted(ExerciseSet set) {
+    return _completedSetNumbers.contains(set.setNumber);
   }
 
   @override
   Widget build(BuildContext context) {
-    return HyperTrackTheme.themedContainer(
+    if (widget.plannedSets.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: HyperTrackTheme.lightGrey),
+        ),
+        child: Column(
+          children: [
+            Icon(LucideIcons.clock, color: Colors.grey.shade400, size: 32),
+            const SizedBox(height: 8),
+            Text(
+              'No planned sets yet',
+              style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Add sets in the planning section above',
+              style: TextStyle(color: Colors.grey.shade500, fontSize: 14),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: HyperTrackTheme.lightGrey),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Header
           Row(
             children: [
-              HyperTrackTheme.coloredIcon(
-                LucideIcons.checkCircle,
-                'saving',
-                size: 24,
+              Icon(
+                LucideIcons.gauge,
+                color: HyperTrackTheme.exerciseBlue,
+                size: 20,
               ),
-              const SizedBox(width: 12),
-              Text('Execute Sets', style: HyperTrackTheme.headerText),
-              const Spacer(),
-              if (_timerRunning) ...[
-                HyperTrackTheme.coloredIcon(
-                  LucideIcons.timer,
-                  'timer',
-                  size: 20,
-                ),
-              ],
+              const SizedBox(width: 8),
+              const Text(
+                'Execute Sets with RIR',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
 
-          // RIR Selection Bar (PRESERVED STYLING)
-          _buildRirSelection(),
-          const SizedBox(height: 16),
-
-          // Planned Sets List
-          if (widget.plannedSets.isNotEmpty) ...[
-            Text('Planned Sets', style: HyperTrackTheme.captionText),
-            const SizedBox(height: 8),
-            ...widget.plannedSets
-                .where((set) => !_isSetCompleted(set))
-                .map((set) => _buildPlannedSetCard(set))
-                .toList(),
-            const SizedBox(height: 16),
-          ],
-
-          // Completed Sets (Slide Down)
-          if (_completedSets.isNotEmpty) ...[
-            Text('Completed Sets', style: HyperTrackTheme.captionText),
-            const SizedBox(height: 8),
-            Expanded(
-              child: ListView.builder(
-                itemCount: _completedSets.length,
-                itemBuilder: (context, index) =>
-                    _buildCompletedSetCard(_completedSets[index]),
-              ),
-            ),
-          ],
-
-          // Rest Timer Display
-          if (_timerRunning) ...[const SizedBox(height: 16), _buildRestTimer()],
-        ],
-      ),
-    );
-  }
-
-  // RIR SELECTION WITH CIRCLES (PRESERVED FROM ORIGINAL)
-  Widget _buildRirSelection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            HyperTrackTheme.coloredIcon(LucideIcons.gauge, 'timer', size: 16),
-            const SizedBox(width: 6),
-            Text(
-              'Select RIR for next completion',
-              style: HyperTrackTheme.captionText,
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-
-        // Compact RIR row with circles (4 to -3)
-        Center(
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              border: Border.all(color: HyperTrackTheme.lightGrey, width: 1),
-              borderRadius: BorderRadius.circular(10),
-              color: Colors.transparent,
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                for (int rir = 4; rir >= -3; rir--) ...[
-                  GestureDetector(
-                    onTap: () => _updateRir(rir),
+          // Compact RIR Selection - FIXED: 4→0→-3, fitting in container
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [4, 3, 2, 1, 0, -1, -2, -3]
+                .map(
+                  (rir) => GestureDetector(
+                    onTap: () => setState(() => _selectedRir = rir),
                     child: Container(
-                      width: 28,
-                      height: 28,
-                      margin: EdgeInsets.only(right: rir > -3 ? 4 : 0),
+                      width: 30,
+                      height: 30,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: Border.all(
-                          color: _getRirColor(rir),
-                          width: _selectedRir == rir ? 2 : 1,
-                        ),
                         color: _selectedRir == rir
                             ? _getRirColor(rir)
                             : Colors.transparent,
+                        border: Border.all(color: _getRirColor(rir), width: 2),
                       ),
                       child: Center(
                         child: Text(
-                          rir >= 0 ? '$rir' : '$rir',
-                          style: HyperTrackTheme.bodyText.copyWith(
+                          rir.toString(),
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
                             color: _selectedRir == rir
                                 ? Colors.white
-                                : HyperTrackTheme.mediumGrey,
-                            fontWeight: _selectedRir == rir
-                                ? FontWeight.w600
-                                : FontWeight.w400,
-                            fontSize: 12,
+                                : _getRirColor(rir),
                           ),
                         ),
                       ),
                     ),
                   ),
-                ],
-              ],
-            ),
+                )
+                .toList(),
           ),
-        ),
-      ],
-    );
-  }
+          const SizedBox(height: 16),
 
-  // PLANNED SET CARD WITH CHECKMARK
-  Widget _buildPlannedSetCard(ExerciseSet set) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        border: Border.all(color: HyperTrackTheme.lightGrey, width: 1),
-        borderRadius: BorderRadius.circular(8),
-        color: Colors.transparent,
-      ),
-      child: Row(
-        children: [
-          Text(
-            'Set ${set.setNumber}',
-            style: HyperTrackTheme.bodyText.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Text(
-            '${set.weight}kg × ${set.reps} reps',
-            style: HyperTrackTheme.bodyText,
-          ),
-          const Spacer(),
-          GestureDetector(
-            onTap: _isExecuting ? null : () => _completeSet(set),
-            child: Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: _isExecuting
-                      ? HyperTrackTheme.lightGrey
-                      : HyperTrackTheme.successGreen,
-                  width: 2,
+          // Planned Sets List - FIXED: Show pending and completed separately
+          Column(
+            children: widget.plannedSets.map((set) {
+              final isCompleted = _isSetCompleted(set);
+              return Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: isCompleted ? Colors.green.shade50 : Colors.white,
+                  border: Border.all(
+                    color: isCompleted
+                        ? Colors.green.shade300
+                        : HyperTrackTheme.lightGrey,
+                  ),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-              ),
-              child: _isExecuting
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : HyperTrackTheme.coloredIcon(
-                      LucideIcons.check,
-                      'saving',
-                      size: 16,
+                child: Row(
+                  children: [
+                    // Set Number
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: isCompleted
+                            ? Colors.green.shade600
+                            : HyperTrackTheme.exerciseBlue.withOpacity(0.1),
+                      ),
+                      child: Center(
+                        child: isCompleted
+                            ? const Icon(
+                                Icons.check,
+                                color: Colors.white,
+                                size: 16,
+                              )
+                            : Text(
+                                set.setNumber.toString(),
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: HyperTrackTheme.exerciseBlue,
+                                ),
+                              ),
+                      ),
                     ),
-            ),
+                    const SizedBox(width: 12),
+
+                    // Set Details
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${set.weight}kg × ${set.reps} reps',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          if (isCompleted)
+                            Text(
+                              'Completed with RIR $_selectedRir',
+                              style: TextStyle(
+                                color: Colors.green.shade700,
+                                fontSize: 12,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+
+                    // Action Button
+                    if (!isCompleted && !_isExecuting)
+                      ElevatedButton.icon(
+                        onPressed: () => _completeSet(set),
+                        icon: const Icon(Icons.check, size: 16),
+                        label: const Text('Complete'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: HyperTrackTheme.exerciseBlue,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              );
+            }).toList(),
           ),
         ],
       ),
     );
-  }
-
-  // COMPLETED SET CARD (SLIDES DOWN)
-  Widget _buildCompletedSetCard(ExerciseSet set) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        border: Border.all(color: HyperTrackTheme.successGreen, width: 1),
-        borderRadius: BorderRadius.circular(8),
-        color: HyperTrackTheme.successGreen.withOpacity(0.05),
-      ),
-      child: Row(
-        children: [
-          HyperTrackTheme.coloredIcon(
-            LucideIcons.checkCircle,
-            'saving',
-            size: 20,
-          ),
-          const SizedBox(width: 12),
-          Text(
-            'Set ${set.setNumber}',
-            style: HyperTrackTheme.bodyText.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Text(
-            '${set.weight}kg × ${set.reps}',
-            style: HyperTrackTheme.bodyText,
-          ),
-          const Spacer(),
-          Text(
-            'RIR ${set.rir}',
-            style: HyperTrackTheme.bodyText.copyWith(
-              color: _getRirColor(set.rir),
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // REST TIMER DISPLAY
-  Widget _buildRestTimer() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        border: Border.all(color: HyperTrackTheme.timerRed, width: 1),
-        borderRadius: BorderRadius.circular(8),
-        color: HyperTrackTheme.timerRed.withOpacity(0.05),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          HyperTrackTheme.coloredIcon(LucideIcons.timer, 'timer', size: 20),
-          const SizedBox(width: 8),
-          Text(
-            'Rest Timer: ${_formatTimer(_restTimerSeconds)}',
-            style: HyperTrackTheme.bodyText.copyWith(
-              fontWeight: FontWeight.w600,
-              fontSize: 16,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // HELPER METHODS
-  bool _isSetCompleted(ExerciseSet set) {
-    return _completedSets.any(
-      (completed) => completed.setNumber == set.setNumber,
-    );
-  }
-
-  String _formatTimer(int seconds) {
-    final minutes = seconds ~/ 60;
-    final secs = seconds % 60;
-    return '${minutes.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
   }
 }
