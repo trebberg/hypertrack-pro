@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════════════════════════════
 // WIDGET: Container Screen
 // PURPOSE: Layout manager + WORKOUT STATE MANAGEMENT (proper fix)
-// DEPENDENCIES: Material, AppHeaderWidget, ExerciseInputWidget, ExerciseHistoryWidget, Database
+// DEPENDENCIES: Material, AppHeaderWidget, ExerciseInputWidget, ExerciseHistoryWidget, SetExecutionWidget, Database
 // RELATIONSHIPS: Parent to all components, SINGLE SOURCE OF TRUTH for workout state
 // THEMING: HyperTrack Design System integration
 // ═══════════════════════════════════════════════════════════════
@@ -12,6 +12,7 @@ import 'package:drift/drift.dart' as drift;
 import '../widgets/app_header_widget.dart';
 import '../widgets/exercise_input_widget.dart';
 import '../widgets/exercise_history_widget.dart';
+import '../widgets/set_execution_widget.dart';
 import '../theme/app_theme.dart';
 import '../models/exercise_set.dart';
 import '../database/database.dart';
@@ -44,32 +45,19 @@ class _ContainerScreenState extends State<ContainerScreen> {
   // Callback to refresh history from child widget
   Future<void> Function()? _refreshHistoryCallback;
 
-  // Workout State
-  bool _isLoading = true;
-  String _statusMessage = "Loading workout data...";
-
-  // Exercise History State (CONTAINER MANAGES)
+  // Container state tracking
+  String _statusMessage = "Initializing workout session...";
+  List<ExerciseSet> _plannedSets = [];
+  List<ExerciseSet> _completedSets = [];
   String _lastPerformance = "";
   List<Map<String, dynamic>> _recentHistory = [];
-
-  // Current Session State (CONTAINER MANAGES)
-  List<Map<String, dynamic>> _plannedSets = [];
-  List<Map<String, dynamic>> _completedSets = [];
+  bool _isLoading = true;
   int _currentSetNumber = 1;
-
-  // Exercise Settings (CONTAINER MANAGES)
-  double _weightIncrement = 2.5;
-  int _repsIncrement = 1;
-  int _defaultRestTime = 180;
-
-  // ─────────────────────────────────────────────────────────────
-  // LIFECYCLE METHODS
-  // ─────────────────────────────────────────────────────────────
 
   @override
   void initState() {
     super.initState();
-    _initializeWorkoutState();
+    _initializeContainer();
   }
 
   @override
@@ -78,86 +66,74 @@ class _ContainerScreenState extends State<ContainerScreen> {
     super.dispose();
   }
 
-  Future<void> _initializeWorkoutState() async {
-    try {
-      setState(() {
-        _statusMessage = "Loading exercise data...";
-        _isLoading = true;
-      });
+  // ─────────────────────────────────────────────────────────────
+  // CONTAINER INITIALIZATION
+  // ─────────────────────────────────────────────────────────────
 
-      // Load exercise history (CONTAINER LOADS ONCE)
-      await _loadExerciseHistory();
-
-      // Load any existing workout state for this session
-      await _loadCurrentSession();
-
-      setState(() {
-        _statusMessage = "Workout data loaded successfully";
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _statusMessage = "Error loading workout data: $e";
-        _isLoading = false;
-      });
-      _showError("Failed to initialize workout: $e");
-    }
+  Future<void> _initializeContainer() async {
+    await _loadLastPerformance();
+    await _loadCurrentSession();
+    setState(() {
+      _isLoading = false;
+      _statusMessage = "Workout session ready";
+    });
   }
 
-  // ─────────────────────────────────────────────────────────────
-  // DATABASE OPERATIONS (CONTAINER COORDINATES ALL DATA)
-  // ─────────────────────────────────────────────────────────────
+  Future<void> _loadLastPerformance() async {
+    try {
+      final lastPerformance = await _database.getLastPerformanceForExercise(
+        widget.userId,
+        widget.exerciseId,
+      );
 
-  Future<void> _loadExerciseHistory() async {
-    // Load last performance (SINGLE CALL)
-    final lastPerformance = await _database.getLastPerformanceForExercise(
-      widget.userId,
-      widget.exerciseId,
-    );
+      String lastPerfText = "No previous performance";
+      List<Map<String, dynamic>> recentHistory = [];
 
-    String lastPerfText = "";
-    if (lastPerformance != null && lastPerformance.isNotEmpty) {
-      double? weight;
-      int? reps;
+      if (lastPerformance.isNotEmpty) {
+        double? weight;
+        int? reps;
 
-      for (final value in lastPerformance) {
-        if (value.numericValue != null) {
-          if (weight == null) {
-            weight = value.numericValue!;
-          } else {
-            reps = value.numericValue!.toInt();
+        for (final value in lastPerformance) {
+          if (value.numericValue != null) {
+            if (weight == null) {
+              weight = value.numericValue!;
+            } else if (reps == null) {
+              reps = value.numericValue!.toInt();
+              break;
+            }
           }
+        }
+
+        if (weight != null && reps != null) {
+          lastPerfText = "Last: ${weight}kg × $reps reps";
         }
       }
 
-      if (weight != null && reps != null) {
-        lastPerfText = "Last time: ${weight}kg × $reps reps";
+      // Get recent sets for history display
+      final recentSets = await _database.getAllSetsForExerciseRaw(
+        widget.userId,
+        widget.exerciseId,
+        widget.workoutId,
+      );
+
+      for (final rawSet in recentSets.take(5)) {
+        recentHistory.add({
+          'setNumber': rawSet['setNumber'] ?? 1,
+          'weight': rawSet['weight'] ?? 0.0,
+          'reps': rawSet['reps'] ?? 0,
+          'rir': rawSet['rir'] ?? 0,
+          'completedAt': rawSet['completedAt'],
+          'workoutName': rawSet['workoutName'] ?? 'Workout',
+        });
       }
-    }
 
-    // Load recent sets history (SINGLE CALL)
-    final rawSets = await _database.getAllSetsForExerciseRaw(
-      widget.userId,
-      widget.exerciseId,
-      widget.workoutId,
-    );
-
-    final List<Map<String, dynamic>> recentHistory = [];
-    for (final rawSet in rawSets.take(10)) {
-      recentHistory.add({
-        'setNumber': rawSet['setNumber'] ?? 1,
-        'weight': rawSet['weight'] ?? 0.0,
-        'reps': rawSet['reps'] ?? 0,
-        'rir': rawSet['rir'] ?? 0,
-        'completedAt': rawSet['completedAt'],
-        'workoutName': rawSet['workoutName'] ?? 'Workout',
+      setState(() {
+        _lastPerformance = lastPerfText;
+        _recentHistory = recentHistory;
       });
+    } catch (e) {
+      print("Container: Error loading last performance: $e");
     }
-
-    setState(() {
-      _lastPerformance = lastPerfText;
-      _recentHistory = recentHistory;
-    });
   }
 
   Future<void> _loadCurrentSession() async {
@@ -188,7 +164,15 @@ class _ContainerScreenState extends State<ContainerScreen> {
       };
 
       setState(() {
-        _plannedSets.add(setData);
+        _plannedSets.add(
+          ExerciseSet.planned(
+            exerciseId: widget.exerciseId.toString(),
+            weight: weight,
+            reps: reps,
+            rir: rir,
+            setNumber: _currentSetNumber,
+          ),
+        );
         _currentSetNumber++;
         _statusMessage = "Set ${setData['setNumber']} planned";
       });
@@ -220,44 +204,34 @@ class _ContainerScreenState extends State<ContainerScreen> {
         setData['setId'] = setId;
         setData['completedAt'] = DateTime.now();
 
-        // Add to completed sets
-        _completedSets.add(Map<String, dynamic>.from(setData));
-
-        // Update recent history IMMEDIATELY (no separate database call needed)
-        _recentHistory.insert(0, {
-          'setNumber': setData['setNumber'],
-          'weight': setData['weight'],
-          'reps': setData['reps'],
-          'rir': setData['rir'],
-          'completedAt': DateTime.now(),
-          'workoutName': 'Current Session',
-        });
+        // Add to completed sets for history
+        _completedSets.add(
+          ExerciseSet.completed(
+            exerciseId: widget.exerciseId.toString(),
+            weight: setData['weight'],
+            reps: setData['reps'],
+            rir: setData['rir'],
+            setNumber: setData['setNumber'],
+          ),
+        );
 
         _statusMessage = "Set ${setData['setNumber']} completed and saved";
       });
 
-      // Update last performance if this is a new record
-      _updateLastPerformanceIfNeeded(setData);
+      // Trigger history refresh via callback
+      if (_refreshHistoryCallback != null) {
+        await _refreshHistoryCallback!();
+      }
     } catch (e) {
       _showError('Error completing set: $e');
     }
   }
 
-  void _updateLastPerformanceIfNeeded(Map<String, dynamic> setData) {
-    // Update "Last time" display for immediate feedback
-    final newLastPerf =
-        "Last time: ${setData['weight']}kg × ${setData['reps']} reps";
-    setState(() {
-      _lastPerformance = newLastPerf;
-    });
-  }
-
   // ─────────────────────────────────────────────────────────────
-  // COMPONENT COMMUNICATION HUB (CONTAINER ORCHESTRATES)
+  // COMPONENT COMMUNICATION HUB (SINGLE COORDINATION POINT)
   // ─────────────────────────────────────────────────────────────
 
   void _handleComponentUpdate(String component, String message) {
-    // SAFE setState - avoid calling during build
     if (mounted) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
@@ -270,13 +244,12 @@ class _ContainerScreenState extends State<ContainerScreen> {
   }
 
   void _handleNavigationRequest() {
-    print("Container: Navigation menu requested");
-    _handleComponentUpdate("Navigation", "Menu accessed via three-dots");
+    print("Container: Navigation request");
+    // Implement navigation logic here
   }
 
   void _handleExerciseSettingsRequest() {
-    print("Container: Exercise settings requested");
-    _handleComponentUpdate("Settings", "Exercise configuration opened");
+    print("Container: Exercise settings request");
     _showExerciseSettings();
   }
 
@@ -322,7 +295,7 @@ class _ContainerScreenState extends State<ContainerScreen> {
           _buildContainerStatus(),
           const SizedBox(height: 24),
 
-          // EXERCISE INPUT - FIXED PARAMETERS
+          // EXERCISE INPUT - PLANNING PHASE
           ExerciseInputWidget(
             userId: widget.userId,
             workoutId: widget.workoutId,
@@ -331,35 +304,62 @@ class _ContainerScreenState extends State<ContainerScreen> {
             onStatusUpdate: (message) =>
                 _handleComponentUpdate("ExerciseInput", message),
             onSetCompleted: (exerciseSet) async {
-              // Handle the set completion
+              // Handle planned set (from ExerciseInputWidget)
+              setState(() {
+                _plannedSets.add(exerciseSet);
+              });
+
               _handleComponentUpdate(
                 "ExerciseInput",
-                "Set ${exerciseSet.setNumber} completed",
+                "Set ${exerciseSet.setNumber} planned: ${exerciseSet.weight}kg × ${exerciseSet.reps}",
+              );
+            },
+            onError: (error) => _showError("ExerciseInput: $error"),
+          ),
+          const SizedBox(height: 20),
+
+          // SET EXECUTION WIDGET - EXECUTION PHASE
+          SetExecutionWidget(
+            userId: widget.userId,
+            workoutId: widget.workoutId,
+            exerciseId: widget.exerciseId,
+            exerciseName: widget.exerciseName,
+            plannedSets: _plannedSets,
+            onStatusUpdate: (message) =>
+                _handleComponentUpdate("SetExecution", message),
+            onSetCompleted: (exerciseSet) async {
+              // Handle set completion
+              _handleComponentUpdate(
+                "SetExecution",
+                "Set ${exerciseSet.setNumber} executed with RIR ${exerciseSet.rir}",
               );
 
-              // TRIGGER HISTORY REFRESH (using callback approach)
+              // Add to completed sets
+              setState(() {
+                _completedSets.add(exerciseSet);
+              });
+
+              // TRIGGER HISTORY REFRESH
               if (_refreshHistoryCallback != null) {
                 await _refreshHistoryCallback!();
-                _handleComponentUpdate(
-                  "ExerciseHistory",
-                  "History refreshed after set completion",
-                );
               }
             },
-            onError: _showError,
+            onError: (error) => _showError("SetExecution: $error"),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
 
-          // EXERCISE HISTORY - WITH CALLBACK REGISTRATION
+          // EXERCISE HISTORY - DISPLAY PHASE
           ExerciseHistoryWidget(
             userId: widget.userId,
             exerciseId: widget.exerciseId,
             exerciseName: widget.exerciseName,
             onStatusUpdate: (message) =>
                 _handleComponentUpdate("ExerciseHistory", message),
-            onError: _showError,
-            onRegisterRefresh: (refreshCallback) {
-              _refreshHistoryCallback = refreshCallback;
+            onError: (error) => _showError("ExerciseHistory: $error"),
+            onRegisterRefresh: (callback) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                _refreshHistoryCallback = callback;
+              });
             },
           ),
         ],
@@ -368,43 +368,36 @@ class _ContainerScreenState extends State<ContainerScreen> {
   }
 
   Widget _buildContainerStatus() {
-    return HyperTrackTheme.themedContainer(
+    return HyperTrackTheme.outlinedCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
               HyperTrackTheme.coloredIcon(
-                LucideIcons.layers,
+                LucideIcons.activity,
                 'exercises',
-                size: 24,
+                size: 16,
               ),
-              const SizedBox(width: 12),
-              const Text(
-                "Workout State Manager - PROPER ARCHITECTURE",
-                style: HyperTrackTheme.headerText,
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text("Status: $_statusMessage", style: HyperTrackTheme.bodyText),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              HyperTrackTheme.coloredIcon(LucideIcons.check, 'add', size: 14),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  "Container manages ALL workout state - no duplicate DB calls",
-                  style: HyperTrackTheme.captionText,
+                  _statusMessage,
+                  style: HyperTrackTheme.bodyText.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 8),
           Row(
             children: [
-              HyperTrackTheme.coloredIcon(LucideIcons.check, 'add', size: 14),
+              HyperTrackTheme.coloredIcon(
+                LucideIcons.database,
+                'exercises',
+                size: 14,
+              ),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
